@@ -3,9 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Import Consultant Sheet List — StudioOS</title>
-  <link rel="stylesheet" href="../styles.css">
+  <title>~~* SHEET LIST EXTRACTOR 2000 *~~</title>
   <style>
+    /* ===== 90s OVERRIDE ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #c0c0c0;
+      background-image: repeating-linear-gradient(
+        45deg, #b0b0b0 0px, #b0b0b0 1px, transparent 1px, transparent 8px
+      );
+      font-family: "Comic Sans MS", "Comic Sans", cursive;
+      color: #000080;
+      min-height: 100vh;
+    }
+    header {
+      background: #000080;
+      color: yellow;
+      text-align: center;
+      padding: 12px;
+      border-bottom: 4px ridge #fff;
+    }
+    header h1 {
+      font-size: 2rem;
+      text-shadow: 2px 2px #ff0000;
+      letter-spacing: 2px;
+      color: yellow;
+    }
+    header .subtitle { color: #00ffff; font-size: 0.9rem; }
+    .back-link { color: #ffff00; font-size: 0.8rem; text-decoration: underline; display: block; margin-bottom: 6px; }
+    .back-link:hover { color: #ff0000; }
+    main { padding: 16px; max-width: 960px; margin: 0 auto; }
+    .content-wrap { display: flex; flex-direction: column; gap: 16px; }
+
+    .tool-box {
+      background: #d4d0c8;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      padding: 0;
+    }
+    .drop-zone {
+      border: 3px dashed #000080;
+      background: #ffffff;
+      margin: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { background: #ffffcc; border-color: #ff0000; }
+    .drop-zone-label { font-size: 1rem; color: #000080; }
+    .drop-zone-label strong { color: #ff0000; cursor: pointer; text-decoration: underline; }
+    .drop-zone-sub { font-size: 0.75rem; color: #808080; margin-top: 4px; }
+
+    .tool-status { padding: 4px 12px 8px; font-size: 0.85rem; color: #000080; min-height: 24px; font-weight: bold; }
+    .tool-status.active { color: #800080; }
+    .tool-status.error  { color: #ff0000; }
+    .tool-status.success { color: #008000; }
+
+    .preview-wrap { display: none; border-top: 2px inset #808080; background: #ffffff; }
+    .preview-wrap.visible { display: block; }
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px 6px;
+      background: #000080;
+    }
+    .preview-label { font-size: 0.75rem; color: #ffff00; font-weight: bold; text-transform: uppercase; }
+    .region-tools { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+    #pageCanvas { display: block; max-width: 100%; border: 2px inset #808080; }
+    .refine-wrap { display: none; position: relative; padding: 0 12px; }
+    .refine-wrap.visible { display: block; }
+    #overlayCanvas { position: absolute; top: 0; left: 12px; cursor: default; max-width: 100%; }
+    .refine-hint { padding: 4px 12px 10px; font-size: 0.8rem; color: #800000; font-weight: bold; min-height: 24px; }
+
+    .btn {
+      font-family: "Comic Sans MS", cursive;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      background: #d4d0c8;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      color: #000000;
+      cursor: pointer;
+    }
+    .btn:hover { background: #e0dcd4; }
+    .btn:active { border-color: #808080 #ffffff #ffffff #808080; }
+    .btn-primary { background: #000080; color: #ffffff; border-color: #6060c0 #000040 #000040 #6060c0; }
+    .btn-primary:hover { background: #0000a0; }
+    .btn-add { background: #008000; color: #ffffff; border-color: #40c040 #004000 #004000 #40c040; }
+    .btn-region-num { background: #804000; color: #ffff00; border-color: #c08040 #402000 #402000 #c08040; }
+    .btn-region-num.active { background: #ff8000; color: #000000; }
+    .btn-region-title { background: #000080; color: #00ffff; border-color: #4040c0 #000040 #000040 #4040c0; }
+    .btn-region-title.active { background: #0000ff; color: #ffffff; }
+
+    .sheet-table-wrap { display: none; flex-direction: column; }
+    .sheet-table-wrap.visible { display: flex; }
+    .sheet-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 12px;
+      background: #000080;
+      border-top: 2px inset #808080;
+    }
+    .sheet-toolbar-left { display: flex; align-items: center; gap: 8px; }
+    .parsed-count { font-size: 0.8rem; color: #ffff00; font-weight: bold; }
+    .sheet-note { font-size: 0.75rem; color: #00ffff; }
+
+    .sheet-table { width: 100%; border-collapse: collapse; }
+    .sheet-table th {
+      text-align: left; font-size: 0.75rem; text-transform: uppercase;
+      color: #ffffff; padding: 4px 8px;
+      background: #808080;
+      border: 1px solid #606060;
+    }
+    .sheet-table td { padding: 0; border: 1px solid #808080; vertical-align: middle; background: #ffffff; }
+    .sheet-table tr:nth-child(even) td { background: #ffffee; }
+    .sheet-table tr:hover td { background: #ccccff; }
+
+    .cell-input {
+      width: 100%; background: transparent; border: none; outline: none;
+      color: #000000; font-size: 0.8rem;
+      font-family: "Courier New", monospace;
+      padding: 4px 8px;
+    }
+    .cell-input:focus { background: #ffffcc; }
+    .cell-input[readonly] { color: #808080; }
+
+    .row-del { width: 28px; text-align: center; cursor: pointer; color: #ff0000; font-weight: bold; font-size: 1rem; }
+    .row-del:hover { background: #ff0000; color: #ffffff; }
+
+    .sheet-footer { padding: 8px 12px; display: flex; justify-content: flex-end; gap: 6px; background: #d4d0c8; border-top: 2px inset #808080; }
+
+    .section-label { font-size: 0.85rem; font-weight: bold; color: #000080; margin-bottom: 8px; text-decoration: underline; }
+    .info-note {
+      background: #ffffcc;
+      border: 2px solid #000080;
+      padding: 10px 12px;
+      color: #000080;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .info-note strong { color: #ff0000; }
+
+    .nineties-footer {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 0.7rem;
+      color: #808080;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .blink { animation: blink 1s step-start infinite; color: #ff0000; font-weight: bold; }
+  </style>
+  <style>
+    /* === original page styles (kept for structure refs) === */
     .back-link {
       display: inline-flex;
       align-items: center;
@@ -283,9 +431,12 @@
 <body>
 
   <header>
-    <a class="back-link" href="../index.html">← StudioOS</a>
-    <h1>Import Consultant Sheet List</h1>
-    <p class="subtitle">Drop a consultant PDF — sheet numbers and titles are extracted automatically</p>
+    <a class="back-link" href="../index.html">← Back to StudioOS</a>
+    <marquee behavior="scroll" scrollamount="4">
+      ★ SHEET LIST EXTRACTOR 2000 ★ &nbsp;&nbsp;&nbsp; POWERED BY PYMUPDF &nbsp;&nbsp;&nbsp; ★ UNDER CONSTRUCTION ★ &nbsp;&nbsp;&nbsp; BEST VIEWED IN 800x600 &nbsp;&nbsp;&nbsp;
+    </marquee>
+    <h1>~~* Import Consultant Sheet List *~~</h1>
+    <p class="subtitle">:: Drop a consultant PDF — sheet numbers and titles extracted automatically ::</p>
   </header>
 
   <main>
@@ -373,6 +524,13 @@
 
     </div>
   </main>
+
+  <div class="nineties-footer">
+    <span class="blink">★</span>
+    Best viewed in Netscape Navigator 4.0 at 800×600 &nbsp;|&nbsp;
+    Visitors: <b>0000247</b> &nbsp;|&nbsp;
+    <span class="blink">★</span>
+  </div>
 
   <script type="module">
     import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
