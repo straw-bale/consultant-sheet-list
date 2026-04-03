@@ -48,14 +48,20 @@ def resolve_params(num):
 
 
 def words_in_rect(page, rect):
-    """Return words whose center point falls inside rect, sorted reading order."""
+    """Return words that overlap the rect by >50% of their area, sorted reading order."""
     all_words = page.get_text("words")  # (x0,y0,x1,y1,word,block,line,wnum)
-    inside = [
-        wd for wd in all_words
-        if rect.x0 <= (wd[0] + wd[2]) / 2 <= rect.x1
-        and rect.y0 <= (wd[1] + wd[3]) / 2 <= rect.y1
-    ]
-    inside.sort(key=lambda wd: (wd[1], wd[0]))  # top-to-bottom, left-to-right
+    inside = []
+    for wd in all_words:
+        wx0, wy0, wx1, wy1 = wd[0], wd[1], wd[2], wd[3]
+        word_area = max((wx1 - wx0) * (wy1 - wy0), 1e-6)
+        ix0 = max(wx0, rect.x0); iy0 = max(wy0, rect.y0)
+        ix1 = min(wx1, rect.x1); iy1 = min(wy1, rect.y1)
+        if ix1 <= ix0 or iy1 <= iy0:
+            continue
+        overlap = (ix1 - ix0) * (iy1 - iy0)
+        if overlap / word_area >= 0.5:
+            inside.append(wd)
+    inside.sort(key=lambda wd: (wd[1], wd[0]))
     return inside
 
 

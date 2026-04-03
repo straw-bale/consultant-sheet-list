@@ -1,974 +1,1535 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>R3A Solutions &mdash; Drawing Sheet Management System v2.1</title>
-  <style>
-    /* ===== CORPORATE 90s ===== */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #c0c0c0;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 13px;
-      color: #000000;
-      min-height: 100vh;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sheet List &mdash; Drawing Sheet Management System v2.1</title>
+    <style>
+      /* ===== CORPORATE 90s ===== */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #c0c0c0;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+        color: #000000;
+        min-height: 100vh;
+      }
 
-    /* Top corporate banner */
-    .corp-banner {
-      background: #000080;
-      padding: 0;
-      border-bottom: 3px solid #c0c000;
-    }
-    .corp-banner-inner {
-      display: flex;
-      align-items: stretch;
-      justify-content: space-between;
-    }
-    .corp-logo {
-      background: #000080;
-      color: #ffffff;
-      font-family: "Times New Roman", Times, serif;
-      font-size: 1.1rem;
-      font-weight: bold;
-      padding: 8px 16px;
-      border-right: 2px solid #c0c000;
-      white-space: nowrap;
-    }
-    .corp-logo span { color: #c0c000; }
-    .corp-marquee-wrap {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      padding: 0 8px;
-    }
-    .corp-marquee-wrap marquee {
-      color: #c0c0c0;
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-    }
-    .corp-nav {
-      display: flex;
-      align-items: stretch;
-      border-left: 2px solid #c0c000;
-    }
-    .corp-nav a {
-      color: #c0c0c0;
-      text-decoration: none;
-      font-size: 0.72rem;
-      padding: 0 12px;
-      display: flex;
-      align-items: center;
-      border-right: 1px solid #000060;
-    }
-    .corp-nav a:hover { background: #000060; color: #ffffff; }
+      /* Top corporate banner */
+      .corp-banner {
+        background: #000080;
+        padding: 0;
+        border-bottom: 3px solid #c0c000;
+      }
+      .corp-banner-inner {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+      }
+      .corp-logo {
+        background: #000080;
+        color: #ffffff;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 1.1rem;
+        font-weight: bold;
+        padding: 8px 16px;
+        border-right: 2px solid #c0c000;
+        white-space: nowrap;
+      }
+      .corp-logo span {
+        color: #c0c000;
+      }
+      .corp-marquee-wrap {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+      }
+      .corp-marquee-wrap marquee {
+        color: #c0c0c0;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+      }
+      .corp-nav {
+        display: flex;
+        align-items: stretch;
+        border-left: 2px solid #c0c000;
+      }
+      .corp-nav a {
+        color: #c0c0c0;
+        text-decoration: none;
+        font-size: 0.72rem;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        border-right: 1px solid #000060;
+      }
+      .corp-nav a:hover {
+        background: #000060;
+        color: #ffffff;
+      }
 
-    /* Page header */
-    header {
-      background: #d4d0c8;
-      border-bottom: 2px solid;
-      border-color: #808080 #ffffff #ffffff #808080;
-      padding: 12px 16px 10px;
-    }
-    .back-link { display: none; }
-    .page-title-row {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      margin-bottom: 2px;
-    }
-    header h1 {
-      font-family: "Times New Roman", Times, serif;
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #000080;
-      letter-spacing: 0.02em;
-    }
-    .version-badge {
-      font-size: 0.7rem;
-      color: #808080;
-      font-style: italic;
-      margin-bottom: 2px;
-    }
-    header .subtitle {
-      font-size: 0.78rem;
-      color: #444444;
-      border-top: 1px solid #aaaaaa;
-      padding-top: 4px;
-      margin-top: 4px;
-    }
+      /* Page header */
+      header {
+        background: #d4d0c8;
+        border-bottom: 2px solid;
+        border-color: #808080 #ffffff #ffffff #808080;
+        padding: 12px 16px 10px;
+      }
+      .back-link {
+        display: none;
+      }
+      .page-title-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 2px;
+      }
+      header h1 {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #000080;
+        letter-spacing: 0.02em;
+      }
+      .version-badge {
+        font-size: 0.7rem;
+        color: #808080;
+        font-style: italic;
+        margin-bottom: 2px;
+      }
+      header .subtitle {
+        font-size: 0.78rem;
+        color: #444444;
+        border-top: 1px solid #aaaaaa;
+        padding-top: 4px;
+        margin-top: 4px;
+      }
 
-    main { padding: 12px 16px; max-width: 980px; margin: 0 auto; }
-    .content-wrap { display: flex; flex-direction: column; gap: 12px; }
+      main {
+        padding: 12px 16px;
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      .content-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
 
-    /* Win95-style panel */
-    .tool-box {
-      background: #d4d0c8;
-      border: 2px solid;
-      border-color: #ffffff #808080 #808080 #ffffff;
-      padding: 0;
-    }
-    .panel-titlebar {
-      background: #000080;
-      color: #ffffff;
-      font-size: 0.72rem;
-      font-weight: bold;
-      padding: 3px 8px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .panel-titlebar-btns {
-      display: flex; gap: 2px;
-    }
-    .titlebar-btn {
-      width: 14px; height: 12px;
-      background: #d4d0c8;
-      border: 1px solid;
-      border-color: #ffffff #808080 #808080 #ffffff;
-      font-size: 9px;
-      line-height: 10px;
-      text-align: center;
-      color: #000;
-      cursor: default;
-    }
+      /* Win95-style panel */
+      .tool-box {
+        background: #d4d0c8;
+        border: 2px solid;
+        border-color: #ffffff #808080 #808080 #ffffff;
+        padding: 0;
+      }
+      .panel-titlebar {
+        background: #000080;
+        color: #ffffff;
+        font-size: 0.72rem;
+        font-weight: bold;
+        padding: 3px 8px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .panel-titlebar-btns {
+        display: flex;
+        gap: 2px;
+      }
+      .titlebar-btn {
+        width: 14px;
+        height: 12px;
+        background: #d4d0c8;
+        border: 1px solid;
+        border-color: #ffffff #808080 #808080 #ffffff;
+        font-size: 9px;
+        line-height: 10px;
+        text-align: center;
+        color: #000;
+        cursor: default;
+      }
 
-    .drop-zone {
-      border: 2px dashed #808080;
-      background: #ffffff;
-      margin: 10px;
-      padding: 28px 16px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .drop-zone:hover, .drop-zone.drag-over {
-      background: #f0f0ff;
-      border-color: #000080;
-    }
-    .drop-zone-label { font-size: 0.85rem; color: #000000; }
-    .drop-zone-label strong { color: #000080; cursor: pointer; text-decoration: underline; }
-    .drop-zone-sub { font-size: 0.72rem; color: #808080; margin-top: 4px; font-style: italic; }
+      .drop-zone {
+        border: 2px dashed #808080;
+        background: #ffffff;
+        margin: 10px;
+        padding: 28px 16px;
+        text-align: center;
+        cursor: pointer;
+      }
+      .drop-zone:hover,
+      .drop-zone.drag-over {
+        background: #f0f0ff;
+        border-color: #000080;
+      }
+      .drop-zone-label {
+        font-size: 0.85rem;
+        color: #000000;
+      }
+      .drop-zone-label strong {
+        color: #000080;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .drop-zone-sub {
+        font-size: 0.72rem;
+        color: #808080;
+        margin-top: 4px;
+        font-style: italic;
+      }
 
-    .tool-status { padding: 3px 10px 6px; font-size: 0.78rem; color: #000080; min-height: 22px; }
-    .tool-status.active { color: #800080; }
-    .tool-status.error  { color: #800000; font-weight: bold; }
-    .tool-status.success { color: #006400; font-weight: bold; }
+      .tool-status {
+        padding: 3px 10px 6px;
+        font-size: 0.78rem;
+        color: #000080;
+        min-height: 22px;
+      }
+      .tool-status.active {
+        color: #800080;
+      }
+      .tool-status.error {
+        color: #800000;
+        font-weight: bold;
+      }
+      .tool-status.success {
+        color: #006400;
+        font-weight: bold;
+      }
 
-    .preview-wrap { display: none; border-top: 2px inset #808080; background: #ffffff; }
-    .preview-wrap.visible { display: block; }
-    .preview-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 4px 8px;
-      background: #d4d0c8;
-      border-bottom: 1px solid #808080;
-    }
-    .preview-label {
-      font-size: 0.7rem; color: #000000; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .region-tools { display: flex; gap: 3px; align-items: center; flex-wrap: wrap; }
-    #pageCanvas { display: block; max-width: 100%; border: 2px inset #808080; }
-    .refine-wrap { display: none; position: relative; padding: 0 10px; }
-    .refine-wrap.visible { display: block; }
-    #overlayCanvas { position: absolute; top: 0; left: 10px; cursor: default; max-width: 100%; }
-    .refine-hint { padding: 3px 10px 8px; font-size: 0.72rem; color: #800000; min-height: 22px; font-style: italic; }
+      .preview-wrap {
+        display: none;
+        border-top: 2px inset #808080;
+        background: #ffffff;
+      }
+      .preview-wrap.visible {
+        display: block;
+      }
+      .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 8px;
+        background: #d4d0c8;
+        border-bottom: 1px solid #808080;
+      }
+      .preview-label {
+        font-size: 0.7rem;
+        color: #000000;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .region-tools {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      #pageCanvas {
+        display: block;
+        max-width: 100%;
+        border: 2px inset #808080;
+      }
+      .refine-wrap {
+        display: none;
+        position: relative;
+        padding: 0 10px;
+      }
+      .refine-wrap.visible {
+        display: block;
+      }
+      #overlayCanvas {
+        position: absolute;
+        top: 0;
+        left: 10px;
+        cursor: default;
+        max-width: 100%;
+      }
+      .refine-hint {
+        padding: 3px 10px 8px;
+        font-size: 0.72rem;
+        color: #800000;
+        min-height: 22px;
+        font-style: italic;
+      }
 
-    /* Win95 buttons */
-    .btn {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 0.72rem;
-      padding: 2px 10px;
-      background: #d4d0c8;
-      border: 2px solid;
-      border-color: #ffffff #808080 #808080 #ffffff;
-      color: #000000;
-      cursor: pointer;
-      min-width: 60px;
-    }
-    .btn:hover { background: #dcdcd4; }
-    .btn:active { border-color: #808080 #ffffff #ffffff #808080; padding: 3px 9px 1px 11px; }
-    .btn-primary {
-      background: #d4d0c8;
-      color: #000000;
-      font-weight: bold;
-      border-color: #ffffff #808080 #808080 #ffffff;
-    }
-    .btn-add { color: #000080; font-weight: bold; }
-    .btn-region-num  { color: #800000; font-style: italic; }
-    .btn-region-num.active  { background: #800000; color: #ffffff; border-color: #c04040 #400000 #400000 #c04040; }
-    .btn-region-title { color: #000080; font-style: italic; }
-    .btn-region-title.active { background: #000080; color: #ffffff; border-color: #4040c0 #000040 #000040 #4040c0; }
+      /* Win95 buttons */
+      .btn {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 0.72rem;
+        padding: 2px 10px;
+        background: #d4d0c8;
+        border: 2px solid;
+        border-color: #ffffff #808080 #808080 #ffffff;
+        color: #000000;
+        cursor: pointer;
+        min-width: 60px;
+      }
+      .btn:hover {
+        background: #dcdcd4;
+      }
+      .btn:active {
+        border-color: #808080 #ffffff #ffffff #808080;
+        padding: 3px 9px 1px 11px;
+      }
+      .btn-primary {
+        background: #d4d0c8;
+        color: #000000;
+        font-weight: bold;
+        border-color: #ffffff #808080 #808080 #ffffff;
+      }
+      .btn-add {
+        color: #000080;
+        font-weight: bold;
+      }
+      .btn-region-num {
+        color: #800000;
+        font-style: italic;
+      }
+      .btn-region-num.active {
+        background: #800000;
+        color: #ffffff;
+        border-color: #c04040 #400000 #400000 #c04040;
+      }
+      .btn-region-title {
+        color: #000080;
+        font-style: italic;
+      }
+      .btn-region-title.active {
+        background: #000080;
+        color: #ffffff;
+        border-color: #4040c0 #000040 #000040 #4040c0;
+      }
 
-    .sheet-table-wrap { display: none; flex-direction: column; }
-    .sheet-table-wrap.visible { display: flex; }
-    .sheet-toolbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 4px 10px;
-      background: #d4d0c8;
-      border-top: 2px inset #808080;
-      border-bottom: 1px solid #808080;
-    }
-    .sheet-toolbar-left { display: flex; align-items: center; gap: 8px; }
-    .parsed-count { font-size: 0.75rem; color: #000080; font-weight: bold; }
-    .sheet-note { font-size: 0.7rem; color: #808080; font-style: italic; }
+      .sheet-table-wrap {
+        display: none;
+        flex-direction: column;
+      }
+      .sheet-table-wrap.visible {
+        display: flex;
+      }
+      .sheet-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 10px;
+        background: #d4d0c8;
+        border-top: 2px inset #808080;
+        border-bottom: 1px solid #808080;
+      }
+      .sheet-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .parsed-count {
+        font-size: 0.75rem;
+        color: #000080;
+        font-weight: bold;
+      }
+      .sheet-note {
+        font-size: 0.7rem;
+        color: #808080;
+        font-style: italic;
+      }
 
-    .sheet-table { width: 100%; border-collapse: collapse; }
-    .sheet-table th {
-      text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
-      color: #ffffff; padding: 3px 8px;
-      background: #000080;
-      border-right: 1px solid #000060;
-    }
-    .sheet-table td { padding: 0; border-bottom: 1px solid #d0d0d0; border-right: 1px solid #d0d0d0; vertical-align: middle; background: #ffffff; }
-    .sheet-table tr:nth-child(even) td { background: #f0f0f8; }
-    .sheet-table tr:hover td { background: #e0e0f0; }
+      .sheet-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .sheet-table th {
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #ffffff;
+        padding: 3px 8px;
+        background: #000080;
+        border-right: 1px solid #000060;
+      }
+      .sheet-table td {
+        padding: 0;
+        border-bottom: 1px solid #d0d0d0;
+        border-right: 1px solid #d0d0d0;
+        vertical-align: middle;
+        background: #ffffff;
+      }
+      .sheet-table tr:nth-child(even) td {
+        background: #f0f0f8;
+      }
+      .sheet-table tr:hover td {
+        background: #e0e0f0;
+      }
 
-    .cell-input {
-      width: 100%; background: transparent; border: none; outline: none;
-      color: #000000; font-size: 0.78rem;
-      font-family: "Courier New", Courier, monospace;
-      padding: 3px 8px;
-    }
-    .cell-input:focus { background: #ffffcc; }
-    .cell-input[readonly] { color: #808080; font-family: Arial, sans-serif; }
+      .cell-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #000000;
+        font-size: 0.78rem;
+        font-family: "Courier New", Courier, monospace;
+        padding: 3px 8px;
+      }
+      .cell-input:focus {
+        background: #ffffcc;
+      }
+      .cell-input[readonly] {
+        color: #808080;
+        font-family: Arial, sans-serif;
+      }
 
-    .row-del { width: 24px; text-align: center; cursor: pointer; color: #808080; font-size: 0.8rem; }
-    .row-del:hover { color: #800000; background: #f0d0d0; }
+      .row-del {
+        width: 24px;
+        text-align: center;
+        cursor: pointer;
+        color: #808080;
+        font-size: 0.8rem;
+      }
+      .row-del:hover {
+        color: #800000;
+        background: #f0d0d0;
+      }
 
-    .sheet-footer {
-      padding: 6px 10px; display: flex; justify-content: flex-end; gap: 4px;
-      background: #d4d0c8; border-top: 2px inset #808080;
-    }
+      .sheet-footer {
+        padding: 6px 10px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 4px;
+        background: #d4d0c8;
+        border-top: 2px inset #808080;
+      }
 
-    .section-label {
-      font-size: 0.7rem; font-weight: bold; color: #000080;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      margin-bottom: 6px; border-bottom: 1px solid #808080; padding-bottom: 3px;
-    }
-    .info-note {
-      background: #ffffff;
-      border: 2px inset #808080;
-      padding: 10px 12px;
-      color: #000000;
-      font-size: 0.78rem;
-      line-height: 1.6;
-    }
-    .info-note strong { color: #000080; }
+      .section-label {
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: #000080;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+        border-bottom: 1px solid #808080;
+        padding-bottom: 3px;
+      }
+      .info-note {
+        background: #ffffff;
+        border: 2px inset #808080;
+        padding: 10px 12px;
+        color: #000000;
+        font-size: 0.78rem;
+        line-height: 1.6;
+      }
+      .info-note strong {
+        color: #000080;
+      }
 
-    .corp-footer {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 0.65rem;
-      color: #606060;
-      border-top: 1px solid #aaaaaa;
-      padding-top: 6px;
-    }
-  </style>
-  <style>
-    /* === original page styles (kept for structure refs) === */
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: #555;
-      text-decoration: none;
-      margin-bottom: 32px;
-    }
-    .back-link:hover { color: #999; }
+      .corp-footer {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 0.65rem;
+        color: #606060;
+        border-top: 1px solid #aaaaaa;
+        padding-top: 6px;
+      }
+    </style>
+    <style>
+      /* === original page styles (kept for structure refs) === */
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: #555;
+        text-decoration: none;
+        margin-bottom: 32px;
+      }
+      .back-link:hover {
+        color: #999;
+      }
 
-    .content-wrap {
-      max-width: 860px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 48px;
-    }
+      .content-wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 48px;
+      }
 
-    /* ── Tool box ── */
-    .tool-box {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 10px;
-      overflow: hidden;
-    }
+      /* ── Tool box ── */
+      .tool-box {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 10px;
+        overflow: hidden;
+      }
 
-    .drop-zone {
-      border: 2px dashed #2a2a2a;
-      border-radius: 8px;
-      margin: 24px;
-      padding: 48px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .drop-zone:hover, .drop-zone.drag-over {
-      border-color: #4f7cff;
-      background: #161e30;
-    }
-    .drop-zone-label {
-      font-size: 0.88rem;
-      color: #666;
-    }
-    .drop-zone-label strong {
-      color: #4f7cff;
-      cursor: pointer;
-    }
-    .drop-zone-label strong:hover { text-decoration: underline; }
-    .drop-zone-sub {
-      font-size: 0.75rem;
-      color: #444;
-      margin-top: 6px;
-    }
+      .drop-zone {
+        border: 2px dashed #2a2a2a;
+        border-radius: 8px;
+        margin: 24px;
+        padding: 48px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .drop-zone:hover,
+      .drop-zone.drag-over {
+        border-color: #4f7cff;
+        background: #161e30;
+      }
+      .drop-zone-label {
+        font-size: 0.88rem;
+        color: #666;
+      }
+      .drop-zone-label strong {
+        color: #4f7cff;
+        cursor: pointer;
+      }
+      .drop-zone-label strong:hover {
+        text-decoration: underline;
+      }
+      .drop-zone-sub {
+        font-size: 0.75rem;
+        color: #444;
+        margin-top: 6px;
+      }
 
-    .tool-status {
-      padding: 0 24px 16px;
-      font-size: 0.78rem;
-      color: #555;
-      min-height: 24px;
-    }
-    .tool-status.active { color: #888; }
-    .tool-status.error  { color: #aa4040; }
-    .tool-status.success { color: #4aaa6a; }
+      .tool-status {
+        padding: 0 24px 16px;
+        font-size: 0.78rem;
+        color: #555;
+        min-height: 24px;
+      }
+      .tool-status.active {
+        color: #888;
+      }
+      .tool-status.error {
+        color: #aa4040;
+      }
+      .tool-status.success {
+        color: #4aaa6a;
+      }
 
-    /* ── Page preview ── */
-    .preview-wrap {
-      display: none;
-      border-top: 1px solid #222;
-      background: #0f0f0f;
-    }
-    .preview-wrap.visible { display: block; }
-    .preview-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 24px 10px;
-    }
-    .preview-label {
-      font-size: 0.72rem;
-      color: #444;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 0;
-    }
-    .region-tools { display: flex; gap: 6px; align-items: center; }
-    #pageCanvas {
-      display: block;
-      max-width: 100%;
-      border: 1px solid #1e1e1e;
-      border-radius: 4px;
-    }
+      /* ── Page preview ── */
+      .preview-wrap {
+        display: none;
+        border-top: 1px solid #222;
+        background: #0f0f0f;
+      }
+      .preview-wrap.visible {
+        display: block;
+      }
+      .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px 10px;
+      }
+      .preview-label {
+        font-size: 0.72rem;
+        color: #444;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0;
+      }
+      .region-tools {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      #pageCanvas {
+        display: block;
+        max-width: 100%;
+        border: 1px solid #1e1e1e;
+        border-radius: 4px;
+      }
 
-    /* ── Refine overlay ── */
-    .refine-wrap {
-      display: none;
-      position: relative;
-      padding: 0 24px;
-    }
-    .refine-wrap.visible { display: block; }
-    #overlayCanvas {
-      position: absolute;
-      top: 0; left: 24px;
-      cursor: default;
-      max-width: 100%;
-    }
-    .refine-hint {
-      font-size: 0.75rem;
-      color: #555;
-      padding: 8px 24px 14px;
-      min-height: 28px;
-    }
-    .btn-region-num {
-      border-color: #3a2a10;
-      background: #1e1500;
-      color: #aa8840;
-      font-size: 0.7rem;
-      padding: 2px 10px;
-    }
-    .btn-region-num:hover { border-color: #f59e0b; color: #f59e0b; }
-    .btn-region-num.active { border-color: #f59e0b; color: #f59e0b; }
-    .btn-region-title {
-      border-color: #1a2a4a;
-      background: #0d1830;
-      color: #4a7aaa;
-      font-size: 0.7rem;
-      padding: 2px 10px;
-    }
-    .btn-region-title:hover { border-color: #4f7cff; color: #7aacf0; }
-    .btn-region-title.active { border-color: #4f7cff; color: #7aacf0; }
+      /* ── Refine overlay ── */
+      .refine-wrap {
+        display: none;
+        position: relative;
+        padding: 0 24px;
+      }
+      .refine-wrap.visible {
+        display: block;
+      }
+      #overlayCanvas {
+        position: absolute;
+        top: 0;
+        left: 24px;
+        cursor: default;
+        max-width: 100%;
+      }
+      .refine-hint {
+        font-size: 0.75rem;
+        color: #555;
+        padding: 8px 24px 14px;
+        min-height: 28px;
+      }
+      .btn-region-num {
+        border-color: #3a2a10;
+        background: #1e1500;
+        color: #aa8840;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+      }
+      .btn-region-num:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+      }
+      .btn-region-num.active {
+        border-color: #f59e0b;
+        color: #f59e0b;
+      }
+      .btn-region-title {
+        border-color: #1a2a4a;
+        background: #0d1830;
+        color: #4a7aaa;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+      }
+      .btn-region-title:hover {
+        border-color: #4f7cff;
+        color: #7aacf0;
+      }
+      .btn-region-title.active {
+        border-color: #4f7cff;
+        color: #7aacf0;
+      }
 
-    /* ── Sheet table ── */
-    .sheet-table-wrap {
-      display: none;
-      flex-direction: column;
-      gap: 0;
-    }
-    .sheet-table-wrap.visible { display: flex; }
+      /* ── Sheet table ── */
+      .sheet-table-wrap {
+        display: none;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sheet-table-wrap.visible {
+        display: flex;
+      }
 
-    .sheet-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 24px;
-      border-top: 1px solid #222;
-      border-bottom: 1px solid #222;
-      background: #161616;
-    }
-    .sheet-toolbar-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .parsed-count {
-      font-size: 0.78rem;
-      color: #666;
-    }
-    .sheet-note {
-      font-size: 0.75rem;
-      color: #444;
-    }
+      .sheet-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 24px;
+        border-top: 1px solid #222;
+        border-bottom: 1px solid #222;
+        background: #161616;
+      }
+      .sheet-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .parsed-count {
+        font-size: 0.78rem;
+        color: #666;
+      }
+      .sheet-note {
+        font-size: 0.75rem;
+        color: #444;
+      }
 
-    .btn {
-      font-size: 0.75rem;
-      padding: 5px 14px;
-      border-radius: 5px;
-      border: 1px solid #2a2a2a;
-      background: #1a1a1a;
-      color: #888;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .btn:hover { color: #ccc; border-color: #444; }
-    .btn-primary {
-      border-color: #2a4a8a;
-      background: #16243e;
-      color: #7aacf0;
-    }
-    .btn-primary:hover { border-color: #4f7cff; color: #aaccff; }
-    .btn-add {
-      border-color: #1a4a2a;
-      background: #0d2a1a;
-      color: #4aaa6a;
-      font-size: 0.7rem;
-      padding: 2px 10px;
-    }
-    .btn-add:hover { border-color: #3dba6e; }
-    .btn-refine {
-      border-color: #3a2a10;
-      background: #1e1500;
-      color: #aa8840;
-      font-size: 0.7rem;
-      padding: 2px 10px;
-    }
-    .btn-refine:hover { border-color: #f59e0b; color: #f59e0b; }
-    .btn-refine.active {
-      border-color: #f59e0b;
-      color: #f59e0b;
-    }
+      .btn {
+        font-size: 0.75rem;
+        padding: 5px 14px;
+        border-radius: 5px;
+        border: 1px solid #2a2a2a;
+        background: #1a1a1a;
+        color: #888;
+        cursor: pointer;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .btn:hover {
+        color: #ccc;
+        border-color: #444;
+      }
+      .btn-primary {
+        border-color: #2a4a8a;
+        background: #16243e;
+        color: #7aacf0;
+      }
+      .btn-primary:hover {
+        border-color: #4f7cff;
+        color: #aaccff;
+      }
+      .btn-add {
+        border-color: #1a4a2a;
+        background: #0d2a1a;
+        color: #4aaa6a;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+      }
+      .btn-add:hover {
+        border-color: #3dba6e;
+      }
+      .btn-refine {
+        border-color: #3a2a10;
+        background: #1e1500;
+        color: #aa8840;
+        font-size: 0.7rem;
+        padding: 2px 10px;
+      }
+      .btn-refine:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+      }
+      .btn-refine.active {
+        border-color: #f59e0b;
+        color: #f59e0b;
+      }
 
-    .sheet-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .sheet-table th {
-      text-align: left;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #555;
-      padding: 8px 12px;
-      border-bottom: 1px solid #222;
-      background: #141414;
-    }
-    .sheet-table td {
-      padding: 0;
-      border-bottom: 1px solid #1a1a1a;
-      vertical-align: middle;
-    }
-    .sheet-table tr:last-child td { border-bottom: none; }
-    .sheet-table tr:hover td { background: #1e1e1e; }
+      .sheet-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .sheet-table th {
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #555;
+        padding: 8px 12px;
+        border-bottom: 1px solid #222;
+        background: #141414;
+      }
+      .sheet-table td {
+        padding: 0;
+        border-bottom: 1px solid #1a1a1a;
+        vertical-align: middle;
+      }
+      .sheet-table tr:last-child td {
+        border-bottom: none;
+      }
+      .sheet-table tr:hover td {
+        background: #1e1e1e;
+      }
 
-    .cell-input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #ccc;
-      font-size: 0.8rem;
-      font-family: inherit;
-      padding: 7px 12px;
-      box-sizing: border-box;
-    }
-    .cell-input:focus { background: #1e2a1e; color: #e0e0e0; }
-    .cell-input[readonly] { color: #555; cursor: default; }
+      .cell-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #ccc;
+        font-size: 0.8rem;
+        font-family: inherit;
+        padding: 7px 12px;
+        box-sizing: border-box;
+      }
+      .cell-input:focus {
+        background: #1e2a1e;
+        color: #e0e0e0;
+      }
+      .cell-input[readonly] {
+        color: #555;
+        cursor: default;
+      }
 
-    .row-del {
-      width: 32px;
-      text-align: center;
-      cursor: pointer;
-      color: #333;
-      font-size: 0.8rem;
-      transition: color 0.1s;
-    }
-    .row-del:hover { color: #aa4040; }
+      .row-del {
+        width: 32px;
+        text-align: center;
+        cursor: pointer;
+        color: #333;
+        font-size: 0.8rem;
+        transition: color 0.1s;
+      }
+      .row-del:hover {
+        color: #aa4040;
+      }
 
-    .sheet-footer {
-      padding: 14px 24px;
-      border-top: 1px solid #222;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
+      .sheet-footer {
+        padding: 14px 24px;
+        border-top: 1px solid #222;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
 
-    /* ── Info section ── */
-    .section-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #555;
-      margin-bottom: 20px;
-    }
-    .info-note {
-      background: #191f2e;
-      border: 1px solid #2a3560;
-      border-radius: 6px;
-      padding: 0.9rem 1rem;
-      color: #7a9aff;
-      font-size: 0.82rem;
-      line-height: 1.6;
-    }
-    .info-note strong { color: #4f7cff; }
-  </style>
-</head>
-<body>
-
-  <div class="corp-banner">
-    <div class="corp-banner-inner">
-      <div class="corp-logo"><span>R3A</span> SOLUTIONS &mdash; DOCUMENT MANAGEMENT</div>
-      <div class="corp-marquee-wrap">
-        <marquee behavior="scroll" scrollamount="2">
-          Drawing Sheet Management System v2.1 &nbsp;&bull;&nbsp; PyMuPDF Extraction Engine &nbsp;&bull;&nbsp; For internal use only &nbsp;&bull;&nbsp; &copy; 1999 R3A Solutions Inc. All rights reserved &nbsp;&bull;&nbsp; Contact your system administrator for support
-        </marquee>
-      </div>
-      <div class="corp-nav">
-        <a href="../index.html">&#8592; Portal Home</a>
-        <a href="#">Help</a>
-      </div>
-    </div>
-  </div>
-
-  <header>
-    <a class="back-link" href="../index.html">Back</a>
-    <div class="page-title-row">
-      <h1>Drawing Sheet List Import</h1>
-      <span class="version-badge">Module v2.1.4 &mdash; Build 19991108</span>
-    </div>
-    <p class="subtitle">Upload a consultant PDF to extract and classify drawing sheet numbers and titles for import into the project database.</p>
-  </header>
-
-  <main>
-    <div class="content-wrap">
-
-      <!-- ── PDF Tool ── -->
-      <section>
-        <div class="tool-box">
-          <div class="panel-titlebar">
-            <span>PDF Import Utility</span>
-            <div class="panel-titlebar-btns">
-              <div class="titlebar-btn">_</div>
-              <div class="titlebar-btn">&#9633;</div>
-              <div class="titlebar-btn">&#10005;</div>
-            </div>
-          </div>
-
-          <div class="drop-zone" id="dropZone">
-            <p class="drop-zone-label">Drop a consultant PDF here, or <strong id="browseBtn">browse</strong></p>
-            <p class="drop-zone-sub">Extracted server-side with PyMuPDF</p>
-            <input type="file" id="fileInput" accept=".pdf" style="display:none">
-          </div>
-
-          <div class="tool-status" id="toolStatus"></div>
-
-          <!-- Page 1 preview -->
-          <div class="preview-wrap" id="previewWrap">
-            <div class="preview-header">
-              <p class="preview-label">Page 1 preview — draw regions to pin exact title block cells</p>
-              <div class="region-tools">
-                <button class="btn btn-region-num" id="numRegionBtn">Sheet # region</button>
-                <button class="btn btn-region-title" id="titleRegionBtn">Title region</button>
-                <button class="btn" id="clearRegionsBtn">Clear</button>
-                <button class="btn btn-primary" id="reparseBtn">Re-parse</button>
-              </div>
-            </div>
-            <div class="refine-wrap" id="refineWrap">
-              <canvas id="pageCanvas"></canvas>
-              <canvas id="overlayCanvas"></canvas>
-            </div>
-            <p class="refine-hint" id="refineHint"></p>
-          </div>
-
-          <!-- Sheet table -->
-          <div class="sheet-table-wrap" id="tableWrap">
-            <div class="sheet-toolbar">
-              <div class="sheet-toolbar-left">
-                <span class="parsed-count" id="parsedCount"></span>
-                <span class="sheet-note">Edit any cells before downloading</span>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <button class="btn btn-add" id="addRowBtn">+ Add row</button>
-              </div>
-            </div>
-            <table class="sheet-table" id="sheetTable">
-              <thead>
-                <tr>
-                  <th style="width:110px">Number</th>
-                  <th>Sheet Name</th>
-                  <th style="width:130px">Discipline</th>
-                  <th style="width:90px">Order Major</th>
-                  <th style="width:90px">Order Minor</th>
-                  <th style="width:32px"></th>
-                </tr>
-              </thead>
-              <tbody id="sheetBody"></tbody>
-            </table>
-            <div class="sheet-footer">
-              <button class="btn" id="resetBtn">Reset</button>
-              <button class="btn btn-primary" id="downloadBtn">Download CSV</button>
-            </div>
-          </div>
-
+      /* ── Info section ── */
+      .section-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #555;
+        margin-bottom: 20px;
+      }
+      .info-note {
+        background: #191f2e;
+        border: 1px solid #2a3560;
+        border-radius: 6px;
+        padding: 0.9rem 1rem;
+        color: #7a9aff;
+        font-size: 0.82rem;
+        line-height: 1.6;
+      }
+      .info-note strong {
+        color: #4f7cff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="corp-banner">
+      <div class="corp-banner-inner">
+        <div class="corp-logo">
+          <span>ARCH</span> SOLUTIONS &mdash; DOCUMENT MANAGEMENT
         </div>
-      </section>
-
-      <!-- ── Info ── -->
-      <section>
-        <p class="section-label">How It Works</p>
-        <div class="info-note">
-          <strong>Automatic extraction</strong> — the tool scans the bottom-right corner of each page
-          (most common title block position), then bottom-left, then the full page as a fallback.
-          No region selection is required. If any titles come out wrong, use the
-          <strong>Refine region</strong> button to draw a crop box and re-parse.
-          <br><br>
-          <strong>Discipline + sort order</strong> are derived from the sheet number prefix:
-          S/SD/SS → Structural · P → Plumbing · M → Mechanical · E → Electrical · FP → Fire Protection · T → Technology
-          <br><br>
-          <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE · ORDER-MAJOR · ORDER-MINOR —
-          ready to import with the pyRevit button.
+        <div class="corp-marquee-wrap">
+          <marquee behavior="scroll" scrollamount="2">
+            Drawing Sheet Management System v2.1 &nbsp;&bull;&nbsp; PyMuPDF
+            Extraction Engine &nbsp;&bull;&nbsp; For internal use only
+            &nbsp;&bull;&nbsp; &copy; 1999 Arch Solutions Inc. All rights
+            reserved &nbsp;&bull;&nbsp; Contact your system administrator for
+            support
+          </marquee>
         </div>
-      </section>
-
+        <div class="corp-nav">
+          <a href="../index.html">&#8592; Portal Home</a>
+          <a href="#">Help</a>
+        </div>
+      </div>
     </div>
-  </main>
 
-  <div class="corp-footer">
-    R3A Solutions Inc. &mdash; Drawing Sheet Management System v2.1 &mdash; &copy; 1999 All Rights Reserved<br>
-    For technical support, contact the IS Department &bull; Extension 4400 &bull; Unauthorized use prohibited
-  </div>
+    <header>
+      <a class="back-link" href="../index.html">Back</a>
+      <div class="page-title-row">
+        <h1>Drawing Sheet List Import</h1>
+        <span class="version-badge">Module v2.1.4 &mdash; Build 19991108</span>
+      </div>
+      <p class="subtitle">
+        Upload a consultant PDF to extract and classify drawing sheet numbers
+        and titles for import into the project database.
+      </p>
+    </header>
 
-  <script type="module">
-    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+    <main>
+      <div class="content-wrap">
+        <!-- ── PDF Tool ── -->
+        <section>
+          <div class="tool-box">
+            <div class="panel-titlebar">
+              <span>PDF Import Utility</span>
+              <div class="panel-titlebar-btns">
+                <div class="titlebar-btn">_</div>
+                <div class="titlebar-btn">&#9633;</div>
+                <div class="titlebar-btn">&#10005;</div>
+              </div>
+            </div>
 
-    // ── DOM refs ─────────────────────────────────────────────────────────────
-    const dropZone       = document.getElementById('dropZone');
-    const fileInput      = document.getElementById('fileInput');
-    const browseBtn      = document.getElementById('browseBtn');
-    const toolStatus     = document.getElementById('toolStatus');
-    const previewWrap    = document.getElementById('previewWrap');
-    const refineWrap     = document.getElementById('refineWrap');
-    const pageCanvas     = document.getElementById('pageCanvas');
-    const overlayCanvas  = document.getElementById('overlayCanvas');
-    const numRegionBtn   = document.getElementById('numRegionBtn');
-    const titleRegionBtn = document.getElementById('titleRegionBtn');
-    const clearRegionsBtn= document.getElementById('clearRegionsBtn');
-    const reparseBtn     = document.getElementById('reparseBtn');
-    const refineHint     = document.getElementById('refineHint');
-    const tableWrap      = document.getElementById('tableWrap');
-    const sheetBody      = document.getElementById('sheetBody');
-    const parsedCount    = document.getElementById('parsedCount');
-    const addRowBtn      = document.getElementById('addRowBtn');
-    const resetBtn       = document.getElementById('resetBtn');
-    const downloadBtn    = document.getElementById('downloadBtn');
+            <div class="drop-zone" id="dropZone">
+              <p class="drop-zone-label">
+                Drop a consultant PDF here, or
+                <strong id="browseBtn">browse</strong>
+              </p>
+              <p class="drop-zone-sub">Extracted server-side with PyMuPDF</p>
+              <input
+                type="file"
+                id="fileInput"
+                accept=".pdf"
+                style="display: none"
+              />
+            </div>
 
-    // ── Constants ────────────────────────────────────────────────────────────
-    const DISCIPLINE_MAP = {
-      'S': ['STRUCTURAL', 300], 'SD': ['STRUCTURAL', 300], 'SS': ['STRUCTURAL', 300],
-      'C': ['CIVIL', 200], 'L': ['LANDSCAPE', 150], 'I': ['INTERIORS', 250],
-      'P': ['PLUMBING', 400], 'MP': ['MECHANICAL PLUMBING', 450],
-      'M': ['MECHANICAL', 500], 'H': ['HVAC', 520],
-      'E': ['ELECTRICAL', 600], 'EP': ['ELECTRICAL POWER', 620],
-      'FP': ['FIRE PROTECTION', 700], 'FA': ['FIRE ALARM', 710],
-      'SP': ['FIRE SUPPRESSION', 720],
-      'T': ['TECHNOLOGY', 800], 'IT': ['TECHNOLOGY', 800],
-    };
+            <div class="tool-status" id="toolStatus"></div>
 
-    // ── State ────────────────────────────────────────────────────────────────
-    let pdfDoc      = null;
-    let pageVP      = null;
-    let numRegion   = null;   // {x0,y0,x1,y1} as page fractions
-    let titleRegion = null;
-    let activeMode  = null;   // 'num' | 'title' | null
-    let currentFile = null;
+            <!-- Page 1 preview -->
+            <div class="preview-wrap" id="previewWrap">
+              <div class="preview-header">
+                <p class="preview-label">
+                  Page 1 preview — draw regions to pin exact title block cells
+                </p>
+                <div class="region-tools">
+                  <button class="btn btn-region-num" id="numRegionBtn">
+                    Sheet # region
+                  </button>
+                  <button class="btn btn-region-title" id="titleRegionBtn">
+                    Title region
+                  </button>
+                  <button class="btn" id="clearRegionsBtn">Clear</button>
+                  <button class="btn btn-primary" id="reparseBtn">
+                    Re-parse
+                  </button>
+                </div>
+              </div>
+              <div class="refine-wrap" id="refineWrap">
+                <canvas id="pageCanvas"></canvas>
+                <canvas id="overlayCanvas"></canvas>
+              </div>
+              <p class="refine-hint" id="refineHint"></p>
+            </div>
 
-    function resolveParams(num) {
-      const prefix = num.includes('-')
-        ? num.split('-')[0]
-        : (num.match(/^[A-Z]+/) || [''])[0];
-      const key = Object.keys(DISCIPLINE_MAP)
-        .sort((a, b) => b.length - a.length)
-        .find(k => prefix === k);
-      const [discipline, major] = key ? DISCIPLINE_MAP[key] : ['CONSULTANT', 900];
-      const n = parseInt((num.match(/\d+/) || [0])[0]);
-      const minor = major + (n < 100 ? 10 : n < 500 ? 20 : 30);
-      return { discipline, major, minor };
-    }
+            <!-- Sheet table -->
+            <div class="sheet-table-wrap" id="tableWrap">
+              <div class="sheet-toolbar">
+                <div class="sheet-toolbar-left">
+                  <span class="parsed-count" id="parsedCount"></span>
+                  <span class="sheet-note"
+                    >Edit any cells before downloading</span
+                  >
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <button class="btn btn-add" id="addRowBtn">+ Add row</button>
+                </div>
+              </div>
+              <table class="sheet-table" id="sheetTable">
+                <thead>
+                  <tr>
+                    <th style="width: 110px">Number</th>
+                    <th>Sheet Name</th>
+                    <th style="width: 130px">Discipline</th>
+                    <th style="width: 90px">Order Major</th>
+                    <th style="width: 90px">Order Minor</th>
+                    <th style="width: 32px"></th>
+                  </tr>
+                </thead>
+                <tbody id="sheetBody"></tbody>
+              </table>
+              <div class="sheet-footer">
+                <button class="btn" id="resetBtn">Reset</button>
+                <button class="btn btn-primary" id="downloadBtn">
+                  Download CSV
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-    // ── Drop / browse ────────────────────────────────────────────────────────
-    browseBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', e => e.target.files[0] && handleFile(e.target.files[0]));
-    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      const f = e.dataTransfer.files[0];
-      if (f && f.type === 'application/pdf') handleFile(f);
-      else setStatus('Please drop a PDF file.', 'error');
-    });
+        <!-- ── Client-side panel ── -->
+        <section>
+          <div class="tool-box">
+            <div class="panel-titlebar">
+              <span>Client-Side Extraction (PDF.js) — uses same pinned regions above</span>
+              <div class="panel-titlebar-btns">
+                <div class="titlebar-btn">_</div>
+                <div class="titlebar-btn">&#9633;</div>
+                <div class="titlebar-btn">&#10005;</div>
+              </div>
+            </div>
+            <div class="drop-zone" id="dropZone2">
+              <p class="drop-zone-label">Drop the same PDF here, or <strong id="browseBtn2">browse</strong></p>
+              <p class="drop-zone-sub">Extracted client-side with PDF.js — no server, no size limit</p>
+              <input type="file" id="fileInput2" accept=".pdf" style="display:none">
+            </div>
+            <div class="tool-status" id="toolStatus2"></div>
+            <div class="sheet-table-wrap" id="tableWrap2">
+              <div class="sheet-toolbar">
+                <div class="sheet-toolbar-left">
+                  <span class="parsed-count" id="parsedCount2"></span>
+                  <span class="sheet-note">PDF.js result</span>
+                </div>
+              </div>
+              <table class="sheet-table" id="sheetTable2">
+                <thead>
+                  <tr>
+                    <th style="width:110px">Number</th>
+                    <th>Sheet Name</th>
+                    <th style="width:130px">Discipline</th>
+                    <th style="width:90px">Order Major</th>
+                    <th style="width:90px">Order Minor</th>
+                  </tr>
+                </thead>
+                <tbody id="sheetBody2"></tbody>
+              </table>
+              <div class="sheet-footer">
+                <button class="btn btn-primary" id="downloadBtn2">Download CSV</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-    // ── Load PDF ─────────────────────────────────────────────────────────────
-    async function handleFile(file) {
-      setStatus('Loading ' + file.name + '…', 'active');
-      tableWrap.classList.remove('visible');
-      numRegion   = null;
-      titleRegion = null;
-      activeMode  = null;
-      currentFile = file;
+        <!-- ── Info ── -->
+        <section>
+          <p class="section-label">How It Works</p>
+          <div class="info-note">
+            <strong>Automatic extraction</strong> — the tool scans the
+            bottom-right corner of each page (most common title block position),
+            then bottom-left, then the full page as a fallback. No region
+            selection is required. If any titles come out wrong, use the
+            <strong>Refine region</strong> button to draw a crop box and
+            re-parse. <br /><br />
+            <strong>Discipline + sort order</strong> are derived from the sheet
+            number prefix: S/SD/SS → Structural · P → Plumbing · M → Mechanical
+            · E → Electrical · FP → Fire Protection · T → Technology
+            <br /><br />
+            <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE ·
+            ORDER-MAJOR · ORDER-MINOR — ready to import with the pyRevit button.
+          </div>
+        </section>
+      </div>
+    </main>
 
-      const buf = await file.arrayBuffer();
-      pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+    <div class="corp-footer">
+      Arch Solutions Inc. &mdash; Drawing Sheet Management System v2.1 &mdash;
+      &copy; 1999 All Rights Reserved<br />
+      For technical support, contact the IS Department &bull; Extension 4400
+      &bull; Unauthorized use prohibited
+    </div>
 
-      await renderPreview();
-      setStatus('Parsing ' + pdfDoc.numPages + ' pages…', 'active');
-      await runExtractionAPI();
-    }
+    <script type="module">
+      import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs";
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs";
 
-    // ── Render page 1 preview ────────────────────────────────────────────────
-    async function renderPreview() {
-      const page  = await pdfDoc.getPage(1);
-      const scale = Math.min(820 / page.getViewport({ scale: 1 }).width, 1.5);
-      pageVP      = page.getViewport({ scale });
+      // ── DOM refs ─────────────────────────────────────────────────────────────
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+      const browseBtn = document.getElementById("browseBtn");
+      const toolStatus = document.getElementById("toolStatus");
+      const previewWrap = document.getElementById("previewWrap");
+      const refineWrap = document.getElementById("refineWrap");
+      const pageCanvas = document.getElementById("pageCanvas");
+      const overlayCanvas = document.getElementById("overlayCanvas");
+      const numRegionBtn = document.getElementById("numRegionBtn");
+      const titleRegionBtn = document.getElementById("titleRegionBtn");
+      const clearRegionsBtn = document.getElementById("clearRegionsBtn");
+      const reparseBtn = document.getElementById("reparseBtn");
+      const refineHint = document.getElementById("refineHint");
+      const tableWrap = document.getElementById("tableWrap");
+      const sheetBody = document.getElementById("sheetBody");
+      const parsedCount = document.getElementById("parsedCount");
+      const addRowBtn = document.getElementById("addRowBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const downloadBtn = document.getElementById("downloadBtn");
 
-      pageCanvas.width  = pageVP.width;
-      pageCanvas.height = pageVP.height;
-      overlayCanvas.width  = pageVP.width;
-      overlayCanvas.height = pageVP.height;
-      overlayCanvas.style.width  = pageCanvas.style.width  = pageCanvas.width + 'px';
-      overlayCanvas.style.height = pageCanvas.style.height = pageCanvas.height + 'px';
+      // ── Constants ────────────────────────────────────────────────────────────
+      const DISCIPLINE_MAP = {
+        S: ["STRUCTURAL", 300],
+        SD: ["STRUCTURAL", 300],
+        SS: ["STRUCTURAL", 300],
+        C: ["CIVIL", 200],
+        L: ["LANDSCAPE", 150],
+        I: ["INTERIORS", 250],
+        P: ["PLUMBING", 400],
+        MP: ["MECHANICAL PLUMBING", 450],
+        M: ["MECHANICAL", 500],
+        H: ["HVAC", 520],
+        E: ["ELECTRICAL", 600],
+        EP: ["ELECTRICAL POWER", 620],
+        FP: ["FIRE PROTECTION", 700],
+        FA: ["FIRE ALARM", 710],
+        SP: ["FIRE SUPPRESSION", 720],
+        T: ["TECHNOLOGY", 800],
+        IT: ["TECHNOLOGY", 800],
+      };
 
-      await page.render({ canvasContext: pageCanvas.getContext('2d'), viewport: pageVP }).promise;
+      // ── State ────────────────────────────────────────────────────────────────
+      let pdfDoc = null;
+      let pageVP = null;
+      let numRegion = null; // {x0,y0,x1,y1} as page fractions
+      let titleRegion = null;
+      let activeMode = null; // 'num' | 'title' | null
+      let currentFile = null;
 
-      previewWrap.classList.add('visible');
-      refineWrap.classList.add('visible');
-    }
-
-    // ── API extraction via PyMuPDF ───────────────────────────────────────────
-    async function runExtractionAPI() {
-      const formData = new FormData();
-      formData.append('file', currentFile);
-      if (numRegion)   formData.append('number_region', JSON.stringify([numRegion.x0,   numRegion.y0,   numRegion.x1,   numRegion.y1]));
-      if (titleRegion) formData.append('title_region',  JSON.stringify([titleRegion.x0, titleRegion.y0, titleRegion.x1, titleRegion.y1]));
-
-      try {
-        const resp = await fetch('/api/extract', { method: 'POST', body: formData });
-        const data = await resp.json();
-        if (data.error) { setStatus(data.error, 'error'); return; }
-        if (!data.sheets || data.sheets.length === 0) { setStatus('No sheet numbers found.', 'error'); return; }
-        setStatus(data.sheets.length + ' sheets extracted.', 'success');
-        renderTable(data.sheets);
-      } catch (err) {
-        setStatus('API error: ' + err.message, 'error');
+      function resolveParams(num) {
+        const prefix = num.includes("-")
+          ? num.split("-")[0]
+          : (num.match(/^[A-Z]+/) || [""])[0];
+        const key = Object.keys(DISCIPLINE_MAP)
+          .sort((a, b) => b.length - a.length)
+          .find((k) => prefix === k);
+        const [discipline, major] = key
+          ? DISCIPLINE_MAP[key]
+          : ["CONSULTANT", 900];
+        const n = parseInt((num.match(/\d+/) || [0])[0]);
+        const minor = major + (n < 100 ? 10 : n < 500 ? 20 : 30);
+        return { discipline, major, minor };
       }
-    }
 
-    // ── Region buttons ────────────────────────────────────────────────────────
-    numRegionBtn.addEventListener('click',   () => setActiveMode(activeMode === 'num'   ? null : 'num'));
-    titleRegionBtn.addEventListener('click', () => setActiveMode(activeMode === 'title' ? null : 'title'));
-
-    clearRegionsBtn.addEventListener('click', () => {
-      numRegion = null; titleRegion = null;
-      drawRegions(); updateHint();
-    });
-
-    reparseBtn.addEventListener('click', async () => {
-      if (!currentFile) return;
-      setActiveMode(null);
-      setStatus('Re-parsing…', 'active');
-      tableWrap.classList.remove('visible');
-      await runExtractionAPI();
-    });
-
-    function setActiveMode(mode) {
-      activeMode = mode;
-      numRegionBtn.classList.toggle('active',   mode === 'num');
-      titleRegionBtn.classList.toggle('active', mode === 'title');
-      overlayCanvas.style.cursor = mode ? 'crosshair' : 'default';
-      updateHint();
-    }
-
-    function updateHint() {
-      if (activeMode === 'num')   { refineHint.textContent = 'Draw a box over the sheet number cell — applied to every page.'; return; }
-      if (activeMode === 'title') { refineHint.textContent = 'Draw a box over the sheet title cell — applied to every page.'; return; }
-      const parts = [];
-      if (numRegion)   parts.push('sheet # pinned');
-      if (titleRegion) parts.push('title pinned');
-      refineHint.textContent = parts.length ? parts.join(' · ') + ' — click Re-parse to apply.' : '';
-    }
-
-    // ── Overlay drawing ───────────────────────────────────────────────────────
-    function drawRegions(activeDrag = null) {
-      const ctx = overlayCanvas.getContext('2d');
-      const w = overlayCanvas.width, h = overlayCanvas.height;
-      ctx.clearRect(0, 0, w, h);
-      if (numRegion)   drawBox(ctx, numRegion,   w, h, 'rgba(245,158,11,0.15)', '#f59e0b', 'Sheet #');
-      if (titleRegion) drawBox(ctx, titleRegion, w, h, 'rgba(79,124,255,0.15)', '#4f7cff', 'Title');
-      if (activeDrag) {
-        const color = activeMode === 'num' ? '#f59e0b' : '#4f7cff';
-        const fill  = activeMode === 'num' ? 'rgba(245,158,11,0.15)' : 'rgba(79,124,255,0.15)';
-        const { sx, sy, ex, ey } = activeDrag;
-        ctx.fillStyle = fill; ctx.strokeStyle = color; ctx.lineWidth = 1.5;
-        ctx.fillRect(sx, sy, ex - sx, ey - sy);
-        ctx.strokeRect(sx, sy, ex - sx, ey - sy);
-      }
-    }
-
-    function drawBox(ctx, rect, w, h, fill, stroke, label) {
-      const x = rect.x0 * w, y = rect.y0 * h;
-      const bw = (rect.x1 - rect.x0) * w, bh = (rect.y1 - rect.y0) * h;
-      ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
-      ctx.fillRect(x, y, bw, bh);
-      ctx.strokeRect(x, y, bw, bh);
-      ctx.fillStyle = stroke;
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(label, x + 5, y + 14);
-    }
-
-    // Drag-to-crop on overlay canvas
-    (() => {
-      let dragging = false, sx = 0, sy = 0;
-
-      function canvasXY(e) {
-        const scaleX = overlayCanvas.width  / overlayCanvas.offsetWidth;
-        const scaleY = overlayCanvas.height / overlayCanvas.offsetHeight;
-        return { x: e.offsetX * scaleX, y: e.offsetY * scaleY };
-      }
-
-      overlayCanvas.addEventListener('mousedown', e => {
-        if (!activeMode) return;
-        ({ x: sx, y: sy } = canvasXY(e));
-        dragging = true;
+      // ── Drop / browse ────────────────────────────────────────────────────────
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener(
+        "change",
+        (e) => e.target.files[0] && handleFile(e.target.files[0]),
+      );
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("drag-over"),
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+        const f = e.dataTransfer.files[0];
+        if (f && f.type === "application/pdf") handleFile(f);
+        else setStatus("Please drop a PDF file.", "error");
       });
 
-      overlayCanvas.addEventListener('mousemove', e => {
-        if (!dragging) return;
-        const { x: ex, y: ey } = canvasXY(e);
-        drawRegions({ sx, sy, ex, ey });
-      });
+      // ── Load PDF ─────────────────────────────────────────────────────────────
+      async function handleFile(file) {
+        setStatus("Loading " + file.name + "…", "active");
+        tableWrap.classList.remove("visible");
+        numRegion = null;
+        titleRegion = null;
+        activeMode = null;
+        currentFile = file;
 
-      overlayCanvas.addEventListener('mouseup', e => {
-        if (!dragging) return;
-        dragging = false;
-        const { x: ex, y: ey } = canvasXY(e);
-        const pw = overlayCanvas.width, ph = overlayCanvas.height;
-        const rect = {
-          x0: Math.min(sx, ex) / pw, y0: Math.min(sy, ey) / ph,
-          x1: Math.max(sx, ex) / pw, y1: Math.max(sy, ey) / ph,
-        };
-        if (activeMode === 'num') numRegion = rect;
-        else titleRegion = rect;
+        const buf = await file.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+
+        await renderPreview();
+        setStatus("Parsing " + pdfDoc.numPages + " pages…", "active");
+        await runExtractionAPI();
+      }
+
+      // ── Render page 1 preview ────────────────────────────────────────────────
+      async function renderPreview() {
+        const page = await pdfDoc.getPage(1);
+        const scale = Math.min(820 / page.getViewport({ scale: 1 }).width, 1.5);
+        pageVP = page.getViewport({ scale });
+
+        pageCanvas.width = pageVP.width;
+        pageCanvas.height = pageVP.height;
+        overlayCanvas.width = pageVP.width;
+        overlayCanvas.height = pageVP.height;
+        overlayCanvas.style.width = pageCanvas.style.width =
+          pageCanvas.width + "px";
+        overlayCanvas.style.height = pageCanvas.style.height =
+          pageCanvas.height + "px";
+
+        await page.render({
+          canvasContext: pageCanvas.getContext("2d"),
+          viewport: pageVP,
+        }).promise;
+
+        previewWrap.classList.add("visible");
+        refineWrap.classList.add("visible");
+      }
+
+      // ── API extraction via PyMuPDF ───────────────────────────────────────────
+      async function runExtractionAPI() {
+        const formData = new FormData();
+        formData.append("file", currentFile);
+        if (numRegion)
+          formData.append(
+            "number_region",
+            JSON.stringify([
+              numRegion.x0,
+              numRegion.y0,
+              numRegion.x1,
+              numRegion.y1,
+            ]),
+          );
+        if (titleRegion)
+          formData.append(
+            "title_region",
+            JSON.stringify([
+              titleRegion.x0,
+              titleRegion.y0,
+              titleRegion.x1,
+              titleRegion.y1,
+            ]),
+          );
+
+        try {
+          const resp = await fetch("/api/extract", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await resp.json();
+          if (data.error) {
+            setStatus(data.error, "error");
+            return;
+          }
+          if (!data.sheets || data.sheets.length === 0) {
+            setStatus("No sheet numbers found.", "error");
+            return;
+          }
+          setStatus(data.sheets.length + " sheets extracted.", "success");
+          renderTable(data.sheets);
+        } catch (err) {
+          setStatus("API error: " + err.message, "error");
+        }
+      }
+
+      // ── Region buttons ────────────────────────────────────────────────────────
+      numRegionBtn.addEventListener("click", () =>
+        setActiveMode(activeMode === "num" ? null : "num"),
+      );
+      titleRegionBtn.addEventListener("click", () =>
+        setActiveMode(activeMode === "title" ? null : "title"),
+      );
+
+      clearRegionsBtn.addEventListener("click", () => {
+        numRegion = null;
+        titleRegion = null;
         drawRegions();
         updateHint();
       });
-    })();
 
-    // ── Table ─────────────────────────────────────────────────────────────────
-    function renderTable(sheets) {
-      sheetBody.innerHTML = '';
-      sheets.forEach(s => addRow(s.number, s.title));
-      parsedCount.textContent = sheetBody.rows.length + ' sheets found';
-      tableWrap.classList.add('visible');
-    }
+      reparseBtn.addEventListener("click", async () => {
+        if (!currentFile) return;
+        setActiveMode(null);
+        setStatus("Re-parsing…", "active");
+        tableWrap.classList.remove("visible");
+        await runExtractionAPI();
+      });
 
-    function addRow(num, title) {
-      const p  = resolveParams(num);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+      function setActiveMode(mode) {
+        activeMode = mode;
+        numRegionBtn.classList.toggle("active", mode === "num");
+        titleRegionBtn.classList.toggle("active", mode === "title");
+        overlayCanvas.style.cursor = mode ? "crosshair" : "default";
+        updateHint();
+      }
+
+      function updateHint() {
+        if (activeMode === "num") {
+          refineHint.textContent =
+            "Draw a box over the sheet number cell — applied to every page.";
+          return;
+        }
+        if (activeMode === "title") {
+          refineHint.textContent =
+            "Draw a box over the sheet title cell — applied to every page.";
+          return;
+        }
+        const parts = [];
+        if (numRegion) parts.push("sheet # pinned");
+        if (titleRegion) parts.push("title pinned");
+        refineHint.textContent = parts.length
+          ? parts.join(" · ") + " — click Re-parse to apply."
+          : "";
+      }
+
+      // ── Overlay drawing ───────────────────────────────────────────────────────
+      function drawRegions(activeDrag = null) {
+        const ctx = overlayCanvas.getContext("2d");
+        const w = overlayCanvas.width,
+          h = overlayCanvas.height;
+        ctx.clearRect(0, 0, w, h);
+        if (numRegion)
+          drawBox(
+            ctx,
+            numRegion,
+            w,
+            h,
+            "rgba(245,158,11,0.15)",
+            "#f59e0b",
+            "Sheet #",
+          );
+        if (titleRegion)
+          drawBox(
+            ctx,
+            titleRegion,
+            w,
+            h,
+            "rgba(79,124,255,0.15)",
+            "#4f7cff",
+            "Title",
+          );
+        if (activeDrag) {
+          const color = activeMode === "num" ? "#f59e0b" : "#4f7cff";
+          const fill =
+            activeMode === "num"
+              ? "rgba(245,158,11,0.15)"
+              : "rgba(79,124,255,0.15)";
+          const { sx, sy, ex, ey } = activeDrag;
+          ctx.fillStyle = fill;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(sx, sy, ex - sx, ey - sy);
+          ctx.strokeRect(sx, sy, ex - sx, ey - sy);
+        }
+      }
+
+      function drawBox(ctx, rect, w, h, fill, stroke, label) {
+        const x = rect.x0 * w,
+          y = rect.y0 * h;
+        const bw = (rect.x1 - rect.x0) * w,
+          bh = (rect.y1 - rect.y0) * h;
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(x, y, bw, bh);
+        ctx.strokeRect(x, y, bw, bh);
+        ctx.fillStyle = stroke;
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText(label, x + 5, y + 14);
+      }
+
+      // Drag-to-crop on overlay canvas
+      (() => {
+        let dragging = false,
+          sx = 0,
+          sy = 0;
+
+        function canvasXY(e) {
+          const scaleX = overlayCanvas.width / overlayCanvas.offsetWidth;
+          const scaleY = overlayCanvas.height / overlayCanvas.offsetHeight;
+          return { x: e.offsetX * scaleX, y: e.offsetY * scaleY };
+        }
+
+        overlayCanvas.addEventListener("mousedown", (e) => {
+          if (!activeMode) return;
+          ({ x: sx, y: sy } = canvasXY(e));
+          dragging = true;
+        });
+
+        overlayCanvas.addEventListener("mousemove", (e) => {
+          if (!dragging) return;
+          const { x: ex, y: ey } = canvasXY(e);
+          drawRegions({ sx, sy, ex, ey });
+        });
+
+        overlayCanvas.addEventListener("mouseup", (e) => {
+          if (!dragging) return;
+          dragging = false;
+          const { x: ex, y: ey } = canvasXY(e);
+          const pw = overlayCanvas.width,
+            ph = overlayCanvas.height;
+          const rect = {
+            x0: Math.min(sx, ex) / pw,
+            y0: Math.min(sy, ey) / ph,
+            x1: Math.max(sx, ex) / pw,
+            y1: Math.max(sy, ey) / ph,
+          };
+          if (activeMode === "num") numRegion = rect;
+          else titleRegion = rect;
+          drawRegions();
+          updateHint();
+        });
+      })();
+
+      // ── Table ─────────────────────────────────────────────────────────────────
+      function renderTable(sheets) {
+        sheetBody.innerHTML = "";
+        sheets.forEach((s) => addRow(s.number, s.title));
+        parsedCount.textContent = sheetBody.rows.length + " sheets found";
+        tableWrap.classList.add("visible");
+      }
+
+      function addRow(num, title) {
+        const p = resolveParams(num);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
         <td><input class="cell-input" value="${esc(num)}" placeholder="E-101"></td>
         <td><input class="cell-input" value="${esc(title)}" placeholder="Sheet title"></td>
         <td><input class="cell-input" value="${esc(p.discipline)}" readonly></td>
         <td><input class="cell-input" value="${p.major}" readonly></td>
         <td><input class="cell-input" value="${p.minor}" readonly></td>
         <td class="row-del" title="Remove row">×</td>`;
-      // Re-resolve discipline when sheet number is edited
-      tr.querySelector('input').addEventListener('change', function () {
-        const p2 = resolveParams(this.value.trim().toUpperCase());
-        const inputs = tr.querySelectorAll('input');
-        inputs[2].value = p2.discipline;
-        inputs[3].value = p2.major;
-        inputs[4].value = p2.minor;
+        // Re-resolve discipline when sheet number is edited
+        tr.querySelector("input").addEventListener("change", function () {
+          const p2 = resolveParams(this.value.trim().toUpperCase());
+          const inputs = tr.querySelectorAll("input");
+          inputs[2].value = p2.discipline;
+          inputs[3].value = p2.major;
+          inputs[4].value = p2.minor;
+        });
+        tr.querySelector(".row-del").addEventListener("click", () => {
+          tr.remove();
+          updateCount();
+        });
+        sheetBody.appendChild(tr);
+        updateCount();
+      }
+
+      function updateCount() {
+        parsedCount.textContent = sheetBody.rows.length + " sheets";
+      }
+
+      function esc(s) {
+        return (s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;");
+      }
+
+      function setStatus(msg, type) {
+        toolStatus.textContent = msg;
+        toolStatus.className = "tool-status" + (type ? " " + type : "");
+      }
+
+      addRowBtn.addEventListener("click", () => {
+        addRow("", "");
+        sheetBody.lastElementChild.querySelector("input").focus();
       });
-      tr.querySelector('.row-del').addEventListener('click', () => { tr.remove(); updateCount(); });
-      sheetBody.appendChild(tr);
-      updateCount();
-    }
 
-    function updateCount() { parsedCount.textContent = sheetBody.rows.length + ' sheets'; }
-
-    function esc(s) {
-      return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    }
-
-    function setStatus(msg, type) {
-      toolStatus.textContent = msg;
-      toolStatus.className   = 'tool-status' + (type ? ' ' + type : '');
-    }
-
-    addRowBtn.addEventListener('click', () => {
-      addRow('', '');
-      sheetBody.lastElementChild.querySelector('input').focus();
-    });
-
-    resetBtn.addEventListener('click', () => {
-      pdfDoc = null; numRegion = null; titleRegion = null; activeMode = null; currentFile = null;
-      sheetBody.innerHTML = '';
-      tableWrap.classList.remove('visible');
-      previewWrap.classList.remove('visible');
-      refineWrap.classList.remove('visible');
-      numRegionBtn.classList.remove('active');
-      titleRegionBtn.classList.remove('active');
-      refineHint.textContent = '';
-      overlayCanvas.getContext('2d').clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-      setStatus('');
-      fileInput.value = '';
-    });
-
-    downloadBtn.addEventListener('click', () => {
-      const rows = Array.from(sheetBody.rows).map(tr => {
-        const inputs = tr.querySelectorAll('input');
-        const q = v => '"' + (v || '').trim().replace(/"/g, '""') + '"';
-        return [q(inputs[0].value), q(inputs[1].value), q(inputs[2].value),
-                inputs[3].value.trim(), inputs[4].value.trim()].join(',');
+      resetBtn.addEventListener("click", () => {
+        pdfDoc = null;
+        numRegion = null;
+        titleRegion = null;
+        activeMode = null;
+        currentFile = null;
+        sheetBody.innerHTML = "";
+        tableWrap.classList.remove("visible");
+        previewWrap.classList.remove("visible");
+        refineWrap.classList.remove("visible");
+        numRegionBtn.classList.remove("active");
+        titleRegionBtn.classList.remove("active");
+        refineHint.textContent = "";
+        overlayCanvas
+          .getContext("2d")
+          .clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        setStatus("");
+        fileInput.value = "";
       });
-      const csv  = 'NUMBER,SHEET NAME,DISCIPLINE,ORDER-MAJOR,ORDER-MINOR\n' + rows.join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const a    = document.createElement('a');
-      a.href     = URL.createObjectURL(blob);
-      a.download = 'consultant-sheet-list.csv';
-      a.click();
-    });
-  </script>
-</body>
+
+      downloadBtn.addEventListener("click", () => {
+        const rows = Array.from(sheetBody.rows).map((tr) => {
+          const inputs = tr.querySelectorAll("input");
+          const q = (v) => '"' + (v || "").trim().replace(/"/g, '""') + '"';
+          return [
+            q(inputs[0].value),
+            q(inputs[1].value),
+            q(inputs[2].value),
+            inputs[3].value.trim(),
+            inputs[4].value.trim(),
+          ].join(",");
+        });
+        const csv =
+          "NUMBER,SHEET NAME,DISCIPLINE,ORDER-MAJOR,ORDER-MINOR\n" +
+          rows.join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "consultant-sheet-list.csv";
+        a.click();
+      });
+      // ── Panel 2: client-side PDF.js extraction ───────────────────────────────
+      const dropZone2    = document.getElementById('dropZone2');
+      const fileInput2   = document.getElementById('fileInput2');
+      const browseBtn2   = document.getElementById('browseBtn2');
+      const toolStatus2  = document.getElementById('toolStatus2');
+      const tableWrap2   = document.getElementById('tableWrap2');
+      const sheetBody2   = document.getElementById('sheetBody2');
+      const parsedCount2 = document.getElementById('parsedCount2');
+      const downloadBtn2 = document.getElementById('downloadBtn2');
+
+      const SHEET_RE_JS = /\b([A-Z]{1,3}-\d{1,4}[A-Z]?|[A-Z]{1,3}\d{3,4}[A-Z]?)\b/;
+
+      browseBtn2.addEventListener('click', () => fileInput2.click());
+      fileInput2.addEventListener('change', e => e.target.files[0] && handleFile2(e.target.files[0]));
+      dropZone2.addEventListener('dragover',  e => { e.preventDefault(); dropZone2.classList.add('drag-over'); });
+      dropZone2.addEventListener('dragleave', () => dropZone2.classList.remove('drag-over'));
+      dropZone2.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone2.classList.remove('drag-over');
+        const f = e.dataTransfer.files[0];
+        if (f && f.type === 'application/pdf') handleFile2(f);
+        else setStatus2('Please drop a PDF file.', 'error');
+      });
+
+      async function handleFile2(file) {
+        setStatus2('Loading ' + file.name + '…', 'active');
+        tableWrap2.classList.remove('visible');
+        const buf = await file.arrayBuffer();
+        const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+        setStatus2('Extracting ' + doc.numPages + ' pages…', 'active');
+        const sheets = await extractClientSide(doc);
+        if (!sheets.length) { setStatus2('No sheets found.', 'error'); return; }
+        setStatus2(sheets.length + ' sheets extracted.', 'success');
+        renderTable2(sheets);
+      }
+
+      async function extractClientSide(doc) {
+        const sheets = [], seen = new Set();
+
+        for (let p = 1; p <= doc.numPages; p++) {
+          const page    = await doc.getPage(p);
+          const vp      = page.getViewport({ scale: 1 });
+          const pw = vp.width, ph = vp.height;
+          const content = await page.getTextContent();
+
+          // Map each text item to page-fraction coords (Y: 0=top, 1=bottom)
+          const items = content.items
+            .filter(it => it.str && it.str.trim())
+            .map(it => ({
+              str: it.str.trim(),
+              x:   it.transform[4] / pw,
+              y:   1 - it.transform[5] / ph,
+            }));
+
+          let num = null, title = '';
+
+          if (numRegion) {
+            const inReg = items
+              .filter(it => it.x >= numRegion.x0 && it.x <= numRegion.x1 &&
+                            it.y >= numRegion.y0 && it.y <= numRegion.y1)
+              .sort((a, b) => a.y - b.y || a.x - b.x);
+            const text = inReg.map(it => it.str).join(' ').trim();
+            num = text.split(/\s+/)[0] || null;
+          } else {
+            // Auto-detect: scan bottom-right quadrant first, then full page
+            const regions = [
+              [0.45, 0.5, 1, 1],
+              [0,    0.5, 0.55, 1],
+              [0,    0,   1,    1],
+            ];
+            outer: for (const [rx0, ry0, rx1, ry1] of regions) {
+              for (const it of items) {
+                if (it.x < rx0 || it.x > rx1 || it.y < ry0 || it.y > ry1) continue;
+                const m = SHEET_RE_JS.exec(it.str);
+                if (m && !seen.has(m[0])) { num = m[0]; break outer; }
+              }
+            }
+          }
+
+          if (!num || seen.has(num)) continue;
+
+          if (titleRegion) {
+            const inReg = items
+              .filter(it => it.x >= titleRegion.x0 && it.x <= titleRegion.x1 &&
+                            it.y >= titleRegion.y0 && it.y <= titleRegion.y1)
+              .sort((a, b) => a.y - b.y || a.x - b.x);
+            title = inReg.map(it => it.str).join(' ').trim();
+          }
+
+          seen.add(num);
+          sheets.push({ number: num, title });
+        }
+        return sheets;
+      }
+
+      function renderTable2(sheets) {
+        sheetBody2.innerHTML = '';
+        sheets.forEach(s => {
+          const p  = resolveParams(s.number);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="padding:4px 8px;font-family:monospace;font-size:0.78rem">${esc(s.number)}</td>
+            <td style="padding:4px 8px;font-size:0.78rem">${esc(s.title)}</td>
+            <td style="padding:4px 8px;font-size:0.78rem;color:#666">${esc(p.discipline)}</td>
+            <td style="padding:4px 8px;font-size:0.78rem;color:#666">${p.major}</td>
+            <td style="padding:4px 8px;font-size:0.78rem;color:#666">${p.minor}</td>`;
+          sheetBody2.appendChild(tr);
+        });
+        parsedCount2.textContent = sheets.length + ' sheets found';
+        tableWrap2.classList.add('visible');
+      }
+
+      function setStatus2(msg, type) {
+        toolStatus2.textContent = msg;
+        toolStatus2.className = 'tool-status' + (type ? ' ' + type : '');
+      }
+
+      downloadBtn2.addEventListener('click', () => {
+        const rows = Array.from(sheetBody2.rows).map(tr => {
+          const cells = tr.querySelectorAll('td');
+          const q = v => '"' + (v || '').trim().replace(/"/g, '""') + '"';
+          return [q(cells[0].textContent), q(cells[1].textContent), q(cells[2].textContent),
+                  cells[3].textContent.trim(), cells[4].textContent.trim()].join(',');
+        });
+        const csv  = 'NUMBER,SHEET NAME,DISCIPLINE,ORDER-MAJOR,ORDER-MINOR\n' + rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a    = document.createElement('a');
+        a.href     = URL.createObjectURL(blob);
+        a.download = 'consultant-sheet-list-pdfjs.csv';
+        a.click();
+      });
+    </script>
+  </body>
 </html>
