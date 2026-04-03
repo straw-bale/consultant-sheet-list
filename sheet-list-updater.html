@@ -1444,14 +1444,16 @@
           const pw = vp.width, ph = vp.height;
           const content = await page.getTextContent();
 
-          // Map each text item to page-fraction coords (Y: 0=top, 1=bottom)
+          // Convert text positions to page-fraction coords using the viewport
+          // transform — handles page rotation and non-standard MediaBox correctly.
           const items = content.items
             .filter(it => it.str && it.str.trim())
-            .map(it => ({
-              str: it.str.trim(),
-              x:   it.transform[4] / pw,
-              y:   1 - it.transform[5] / ph,
-            }));
+            .map(it => {
+              const [cx, cy] = pdfjsLib.Util.applyTransform(
+                [it.transform[4], it.transform[5]], vp.transform
+              );
+              return { str: it.str.trim(), x: cx / pw, y: cy / ph };
+            });
 
           let num = null, title = '';
 
