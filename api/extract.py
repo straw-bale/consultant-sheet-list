@@ -60,23 +60,30 @@ def extract_sheets(pdf_bytes, number_region=None, title_region=None):
         num_blocks = None
 
         # ── Find sheet number ──────────────────────────────────────────────
-        search_regions = [number_region] if number_region else AUTO_REGIONS
-        for (rx0, ry0, rx1, ry1) in search_regions:
+        if number_region:
+            # Pinned region: read text directly, no pattern matching
+            (rx0, ry0, rx1, ry1) = number_region
             clip = fitz.Rect(rx0 * w, ry0 * h, rx1 * w, ry1 * h)
-            blocks = sorted(
-                [b for b in page.get_text('blocks', clip=clip) if b[6] == 0],
-                key=lambda b: b[1]
-            )
-            for i, blk in enumerate(blocks):
-                m = SHEET_RE.search(blk[4])
-                if not m or m.group(0) in seen:
-                    continue
-                num = m.group(0)
-                num_block_idx = i
-                num_blocks = blocks
-                break
-            if num:
-                break
+            raw = page.get_text('text', clip=clip)
+            lines = [l.strip() for l in raw.splitlines() if l.strip() and not NOISE_RE.search(l)]
+            num = lines[0] if lines else None
+        else:
+            for (rx0, ry0, rx1, ry1) in AUTO_REGIONS:
+                clip = fitz.Rect(rx0 * w, ry0 * h, rx1 * w, ry1 * h)
+                blocks = sorted(
+                    [b for b in page.get_text('blocks', clip=clip) if b[6] == 0],
+                    key=lambda b: b[1]
+                )
+                for i, blk in enumerate(blocks):
+                    m = SHEET_RE.search(blk[4])
+                    if not m or m.group(0) in seen:
+                        continue
+                    num = m.group(0)
+                    num_block_idx = i
+                    num_blocks = blocks
+                    break
+                if num:
+                    break
 
         if not num:
             continue
