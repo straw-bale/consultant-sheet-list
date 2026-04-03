@@ -47,6 +47,18 @@ def resolve_params(num):
     return discipline, major, minor
 
 
+def words_in_rect(page, rect):
+    """Return words whose center point falls inside rect, sorted reading order."""
+    all_words = page.get_text("words")  # (x0,y0,x1,y1,word,block,line,wnum)
+    inside = [
+        wd for wd in all_words
+        if rect.x0 <= (wd[0] + wd[2]) / 2 <= rect.x1
+        and rect.y0 <= (wd[1] + wd[3]) / 2 <= rect.y1
+    ]
+    inside.sort(key=lambda wd: (wd[1], wd[0]))  # top-to-bottom, left-to-right
+    return inside
+
+
 def extract_sheets(pdf_bytes, number_region=None, title_region=None):
     doc = fitz.open(stream=pdf_bytes, filetype='pdf')
     results = []
@@ -61,12 +73,12 @@ def extract_sheets(pdf_bytes, number_region=None, title_region=None):
 
         # ── Find sheet number ──────────────────────────────────────────────
         if number_region:
-            # Pinned region: read text directly, no pattern matching
+            # Pinned region: word-level extraction, filter by word center point
             (rx0, ry0, rx1, ry1) = number_region
             clip = fitz.Rect(rx0 * w, ry0 * h, rx1 * w, ry1 * h)
-            raw = page.get_text('text', clip=clip)
-            lines = [l.strip() for l in raw.splitlines() if l.strip() and not NOISE_RE.search(l)]
-            num = lines[0] if lines else None
+            words = words_in_rect(page, clip)
+            text = ' '.join(wd[4] for wd in words).strip()
+            num = text.split()[0] if text else None
         else:
             for (rx0, ry0, rx1, ry1) in AUTO_REGIONS:
                 clip = fitz.Rect(rx0 * w, ry0 * h, rx1 * w, ry1 * h)
@@ -92,17 +104,8 @@ def extract_sheets(pdf_bytes, number_region=None, title_region=None):
         if title_region:
             (tx0, ty0, tx1, ty1) = title_region
             tclip = fitz.Rect(tx0 * w, ty0 * h, tx1 * w, ty1 * h)
-            tblocks = sorted(
-                [b for b in page.get_text('blocks', clip=tclip) if b[6] == 0],
-                key=lambda b: b[1]
-            )
-            lines = []
-            for blk in tblocks:
-                for line in blk[4].splitlines():
-                    line = line.strip()
-                    if line and not NOISE_RE.search(line) and not SHEET_RE.search(line) and len(line) >= 3:
-                        lines.append(line)
-            title = ' '.join(lines[:3]).strip()
+            words = words_in_rect(page, tclip)
+            title = ' '.join(wd[4] for wd in words).strip()
         elif num_blocks and num_block_idx is not None:
             # Heuristic: look in blocks above the sheet number block
             candidates = []
