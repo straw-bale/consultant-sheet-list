@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Consultant Sheet List — StudioOS</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #555;
+      text-decoration: none;
+      margin-bottom: 32px;
+    }
+    .back-link:hover { color: #999; }
+
+    .content-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    /* ── Tool box ── */
+    .tool-box {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .drop-zone {
+      border: 2px dashed #2a2a2a;
+      border-radius: 8px;
+      margin: 24px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #4f7cff;
+      background: #161e30;
+    }
+    .drop-zone-label {
+      font-size: 0.88rem;
+      color: #666;
+    }
+    .drop-zone-label strong {
+      color: #4f7cff;
+      cursor: pointer;
+    }
+    .drop-zone-label strong:hover { text-decoration: underline; }
+    .drop-zone-sub {
+      font-size: 0.75rem;
+      color: #444;
+      margin-top: 6px;
+    }
+
+    .tool-status {
+      padding: 0 24px 16px;
+      font-size: 0.78rem;
+      color: #555;
+      min-height: 24px;
+    }
+    .tool-status.active { color: #888; }
+    .tool-status.error  { color: #aa4040; }
+    .tool-status.success { color: #4aaa6a; }
+
+    /* ── Page preview ── */
+    .preview-wrap {
+      display: none;
+      border-top: 1px solid #222;
+      padding: 16px 24px;
+      background: #0f0f0f;
+    }
+    .preview-wrap.visible { display: block; }
+    .preview-label {
+      font-size: 0.72rem;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    #pageCanvas {
+      display: block;
+      max-width: 100%;
+      border: 1px solid #1e1e1e;
+      border-radius: 4px;
+    }
+
+    /* ── Refine overlay ── */
+    .refine-wrap {
+      display: none;
+      position: relative;
+    }
+    .refine-wrap.visible { display: block; }
+    #overlayCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      cursor: crosshair;
+      max-width: 100%;
+    }
+    .refine-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .refine-hint {
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    /* ── Sheet table ── */
+    .sheet-table-wrap {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+    }
+    .sheet-table-wrap.visible { display: flex; }
+
+    .sheet-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-top: 1px solid #222;
+      border-bottom: 1px solid #222;
+      background: #161616;
+    }
+    .sheet-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .parsed-count {
+      font-size: 0.78rem;
+      color: #666;
+    }
+    .sheet-note {
+      font-size: 0.75rem;
+      color: #444;
+    }
+
+    .btn {
+      font-size: 0.75rem;
+      padding: 5px 14px;
+      border-radius: 5px;
+      border: 1px solid #2a2a2a;
+      background: #1a1a1a;
+      color: #888;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn:hover { color: #ccc; border-color: #444; }
+    .btn-primary {
+      border-color: #2a4a8a;
+      background: #16243e;
+      color: #7aacf0;
+    }
+    .btn-primary:hover { border-color: #4f7cff; color: #aaccff; }
+    .btn-add {
+      border-color: #1a4a2a;
+      background: #0d2a1a;
+      color: #4aaa6a;
+      font-size: 0.7rem;
+      padding: 2px 10px;
+    }
+    .btn-add:hover { border-color: #3dba6e; }
+    .btn-refine {
+      border-color: #3a2a10;
+      background: #1e1500;
+      color: #aa8840;
+      font-size: 0.7rem;
+      padding: 2px 10px;
+    }
+    .btn-refine:hover { border-color: #f59e0b; color: #f59e0b; }
+    .btn-refine.active {
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+
+    .sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .sheet-table th {
+      text-align: left;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #555;
+      padding: 8px 12px;
+      border-bottom: 1px solid #222;
+      background: #141414;
+    }
+    .sheet-table td {
+      padding: 0;
+      border-bottom: 1px solid #1a1a1a;
+      vertical-align: middle;
+    }
+    .sheet-table tr:last-child td { border-bottom: none; }
+    .sheet-table tr:hover td { background: #1e1e1e; }
+
+    .cell-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ccc;
+      font-size: 0.8rem;
+      font-family: inherit;
+      padding: 7px 12px;
+      box-sizing: border-box;
+    }
+    .cell-input:focus { background: #1e2a1e; color: #e0e0e0; }
+    .cell-input[readonly] { color: #555; cursor: default; }
+
+    .row-del {
+      width: 32px;
+      text-align: center;
+      cursor: pointer;
+      color: #333;
+      font-size: 0.8rem;
+      transition: color 0.1s;
+    }
+    .row-del:hover { color: #aa4040; }
+
+    .sheet-footer {
+      padding: 14px 24px;
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ── Info section ── */
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .info-note {
+      background: #191f2e;
+      border: 1px solid #2a3560;
+      border-radius: 6px;
+      padding: 0.9rem 1rem;
+      color: #7a9aff;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .info-note strong { color: #4f7cff; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="back-link" href="../index.html">← StudioOS</a>
+    <h1>Import Consultant Sheet List</h1>
+    <p class="subtitle">Drop a consultant PDF — sheet numbers and titles are extracted automatically</p>
+  </header>
+
+  <main>
+    <div class="content-wrap">
+
+      <!-- ── PDF Tool ── -->
+      <section>
+        <div class="tool-box">
+
+          <div class="drop-zone" id="dropZone">
+            <p class="drop-zone-label">Drop a consultant PDF here, or <strong id="browseBtn">browse</strong></p>
+            <p class="drop-zone-sub">Parsed client-side — file never leaves your machine</p>
+            <input type="file" id="fileInput" accept=".pdf" style="display:none">
+          </div>
+
+          <div class="tool-status" id="toolStatus"></div>
+
+          <!-- Page 1 preview -->
+          <div class="preview-wrap" id="previewWrap">
+            <p class="preview-label">Page 1 preview</p>
+            <div class="refine-wrap" id="refineWrap">
+              <canvas id="pageCanvas"></canvas>
+              <canvas id="overlayCanvas"></canvas>
+            </div>
+            <div class="refine-bar" id="refineBar" style="display:none">
+              <span class="refine-hint">Draw a box over the title block area, then click Re-parse.</span>
+              <div style="display:flex;gap:8px;">
+                <button class="btn" id="clearCropBtn">Clear</button>
+                <button class="btn btn-primary" id="reparseBtn">Re-parse</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sheet table -->
+          <div class="sheet-table-wrap" id="tableWrap">
+            <div class="sheet-toolbar">
+              <div class="sheet-toolbar-left">
+                <span class="parsed-count" id="parsedCount"></span>
+                <span class="sheet-note">Edit any cells before downloading</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn btn-refine" id="refineBtn">Refine region</button>
+                <button class="btn btn-add" id="addRowBtn">+ Add row</button>
+              </div>
+            </div>
+            <table class="sheet-table" id="sheetTable">
+              <thead>
+                <tr>
+                  <th style="width:110px">Number</th>
+                  <th>Sheet Name</th>
+                  <th style="width:130px">Discipline</th>
+                  <th style="width:90px">Order Major</th>
+                  <th style="width:90px">Order Minor</th>
+                  <th style="width:32px"></th>
+                </tr>
+              </thead>
+              <tbody id="sheetBody"></tbody>
+            </table>
+            <div class="sheet-footer">
+              <button class="btn" id="resetBtn">Reset</button>
+              <button class="btn btn-primary" id="downloadBtn">Download CSV</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── Info ── -->
+      <section>
+        <p class="section-label">How It Works</p>
+        <div class="info-note">
+          <strong>Automatic extraction</strong> — the tool scans the bottom-right corner of each page
+          (most common title block position), then bottom-left, then the full page as a fallback.
+          No region selection is required. If any titles come out wrong, use the
+          <strong>Refine region</strong> button to draw a crop box and re-parse.
+          <br><br>
+          <strong>Discipline + sort order</strong> are derived from the sheet number prefix:
+          S/SD/SS → Structural · P → Plumbing · M → Mechanical · E → Electrical · FP → Fire Protection · T → Technology
+          <br><br>
+          <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE · ORDER-MAJOR · ORDER-MINOR —
+          ready to import with the pyRevit button.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
+
+    // ── DOM refs ─────────────────────────────────────────────────────────────
+    const dropZone      = document.getElementById('dropZone');
+    const fileInput     = document.getElementById('fileInput');
+    const browseBtn     = document.getElementById('browseBtn');
+    const toolStatus    = document.getElementById('toolStatus');
+    const previewWrap   = document.getElementById('previewWrap');
+    const refineWrap    = document.getElementById('refineWrap');
+    const pageCanvas    = document.getElementById('pageCanvas');
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    const refineBar     = document.getElementById('refineBar');
+    const clearCropBtn  = document.getElementById('clearCropBtn');
+    const reparseBtn    = document.getElementById('reparseBtn');
+    const tableWrap     = document.getElementById('tableWrap');
+    const sheetBody     = document.getElementById('sheetBody');
+    const parsedCount   = document.getElementById('parsedCount');
+    const refineBtn     = document.getElementById('refineBtn');
+    const addRowBtn     = document.getElementById('addRowBtn');
+    const resetBtn      = document.getElementById('resetBtn');
+    const downloadBtn   = document.getElementById('downloadBtn');
+
+    // ── Constants ────────────────────────────────────────────────────────────
+    // Matches both hyphenated and no-hyphen sheet number formats:
+    //   Hyphenated (any digit count): E-101, FA-101, FA-1, SD-101, C-001
+    //   No-hyphen (3+ digits only):   E001, FA001, E100, M301
+    //   (3+ digit minimum for no-hyphen avoids false positives on short codes)
+    const SHEET_RE = /\b([A-Z]{1,3}-\d{1,4}[A-Z]?|[A-Z]{1,3}\d{3,4}[A-Z]?)\b/;
+
+    const NOISE_RE = /PROJECT\s*#|PHONE\s*:|FAX\s*:|WWW\.|\.COM|SCALE[\s:=]|COPYRIGHT|^\s*\d+\s*$|\d{3}[-.\s]\d{3}[-.\s]\d{4}/i;
+
+    const DISCIPLINE_MAP = {
+      // Structural
+      'S': ['STRUCTURAL', 300], 'SD': ['STRUCTURAL', 300], 'SS': ['STRUCTURAL', 300],
+      // Civil / Landscape / Interiors
+      'C': ['CIVIL', 200], 'L': ['LANDSCAPE', 150], 'I': ['INTERIORS', 250],
+      // Plumbing / Mechanical / Electrical
+      'P': ['PLUMBING', 400], 'MP': ['MECHANICAL PLUMBING', 450],
+      'M': ['MECHANICAL', 500], 'H': ['HVAC', 520],
+      'E': ['ELECTRICAL', 600], 'EP': ['ELECTRICAL POWER', 620],
+      // Fire
+      'FP': ['FIRE PROTECTION', 700], 'FA': ['FIRE ALARM', 710],
+      'SP': ['FIRE SUPPRESSION', 720],
+      // Technology / Special
+      'T': ['TECHNOLOGY', 800], 'IT': ['TECHNOLOGY', 800],
+    };
+
+    // Auto-detect regions: [x0_frac, y0_frac, x1_frac, y1_frac] of page size.
+    // 50% (not 55%) so title blocks on smaller sheets (11x17 landscape) aren't clipped.
+    const AUTO_REGIONS = [
+      [0.45, 0.50, 1.0, 1.0],  // bottom-right (most common)
+      [0.0,  0.50, 0.55, 1.0], // bottom-left
+      [0.0,  0.0,  1.0,  1.0], // full page fallback
+    ];
+
+    // ── State ────────────────────────────────────────────────────────────────
+    let pdfDoc   = null;
+    let pageVP   = null;   // viewport of page 1 at render scale
+    let cropRect = null;   // {x0,y0,x1,y1} as canvas-pixel fractions (set during refine)
+    let refining = false;
+
+    function resolveParams(num) {
+      // Handle both "FA-101" (hyphenated) and "FA001" (no-hyphen)
+      const prefix = num.includes('-')
+        ? num.split('-')[0]
+        : (num.match(/^[A-Z]+/) || [''])[0];
+      const key = Object.keys(DISCIPLINE_MAP)
+        .sort((a, b) => b.length - a.length)
+        .find(k => prefix === k);
+      const [discipline, major] = key ? DISCIPLINE_MAP[key] : ['CONSULTANT', 900];
+      const n = parseInt((num.match(/\d+/) || [0])[0]);
+      const minor = major + (n < 100 ? 10 : n < 500 ? 20 : 30);
+      return { discipline, major, minor };
+    }
+
+    // ── Drop / browse ────────────────────────────────────────────────────────
+    browseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => e.target.files[0] && handleFile(e.target.files[0]));
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type === 'application/pdf') handleFile(f);
+      else setStatus('Please drop a PDF file.', 'error');
+    });
+
+    // ── Load PDF ─────────────────────────────────────────────────────────────
+    async function handleFile(file) {
+      setStatus('Loading ' + file.name + '…', 'active');
+      tableWrap.classList.remove('visible');
+      cropRect = null;
+      refining = false;
+
+      const buf = await file.arrayBuffer();
+      pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+
+      await renderPreview();
+      setStatus('Parsing ' + pdfDoc.numPages + ' pages…', 'active');
+      await runExtraction(null);
+    }
+
+    // ── Render page 1 preview ────────────────────────────────────────────────
+    async function renderPreview() {
+      const page  = await pdfDoc.getPage(1);
+      const scale = Math.min(820 / page.getViewport({ scale: 1 }).width, 1.5);
+      pageVP      = page.getViewport({ scale });
+
+      pageCanvas.width  = pageVP.width;
+      pageCanvas.height = pageVP.height;
+      overlayCanvas.width  = pageVP.width;
+      overlayCanvas.height = pageVP.height;
+      overlayCanvas.style.width  = pageCanvas.style.width  = pageCanvas.width + 'px';
+      overlayCanvas.style.height = pageCanvas.style.height = pageCanvas.height + 'px';
+
+      await page.render({ canvasContext: pageCanvas.getContext('2d'), viewport: pageVP }).promise;
+
+      previewWrap.classList.add('visible');
+      refineWrap.classList.add('visible');
+    }
+
+    // ── Core extraction ──────────────────────────────────────────────────────
+    // Maps PDF.js text items to {str, cx, cy} in canvas (screen) coordinates.
+    // Uses a dynamic line-height tolerance derived from the median character height
+    // of text on the page, so it works correctly across different PDF scales.
+    async function extractPage(page, forcedRegionFrac, diagLines, pageNum) {
+      const vp      = page.getViewport({ scale: pageVP.scale });
+      const content = await page.getTextContent();
+
+      // Compute dynamic line tolerance from median text height
+      const heights = content.items
+        .map(it => Math.abs(it.transform[3]))
+        .filter(h => h > 2);
+      heights.sort((a, b) => a - b);
+      const medianH = heights[Math.floor(heights.length / 2)] || 10;
+      const lineTol = medianH * 0.65;
+
+      // Map items to canvas coordinates
+      const mapped = content.items
+        .filter(it => it.transform && it.str && it.str.trim())
+        .map(it => {
+          const [cx, cy] = pdfjsLib.Util.applyTransform(
+            [it.transform[4], it.transform[5]], vp.transform
+          );
+          return { str: it.str.trim(), cx, cy };
+        });
+
+      mapped.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
+
+      // Group spans into lines using dynamic tolerance
+      const lines = groupIntoLines(mapped, lineTol);
+      const nonEmpty = lines.filter(l => l.text.length > 0);
+
+      // Populate page-1 line list (used in error message when nothing is found)
+      if (diagLines) nonEmpty.forEach(l => diagLines.push(l.text));
+
+      // Determine which regions to try
+      const regionsToTry = forcedRegionFrac
+        ? [forcedRegionFrac]
+        : AUTO_REGIONS;
+
+      for (const [rx0, ry0, rx1, ry1] of regionsToTry) {
+        const rLeft   = rx0 * vp.width;
+        const rRight  = rx1 * vp.width;
+        const rTop    = ry0 * vp.height;
+        const rBottom = ry1 * vp.height;
+
+        // Filter lines to those whose center falls within this region
+        const regionLines = nonEmpty.filter(
+          l => l.cx >= rLeft && l.cx <= rRight && l.cy >= rTop && l.cy <= rBottom
+        );
+
+        // Find the best sheet number candidate in this region.
+        // Score = prominence (how much of the line text is the sheet number)
+        //         minus a small distance penalty.
+        // This strongly prefers a standalone "P401" cell over "Z-1460" buried
+        // inside a longer note or callout.
+        const rcx = (rLeft + rRight) / 2;
+        const rcy = (rTop  + rBottom) / 2;
+        let best = null, bestScore = -Infinity;
+        const allCandidates = [];
+        for (const line of regionLines) {
+          const m = SHEET_RE.exec(line.text);
+          if (!m) continue;
+          const num = m[0];
+          const prominence = num.length / line.text.length; // 1.0 = standalone
+          const cyNorm    = line.cy / vp.height;            // 0=top, 1=bottom
+          const dx = line.cx - rcx, dy = line.cy - rcy;
+          const distNorm = Math.sqrt(dx * dx + dy * dy) / (vp.width + vp.height);
+          // Weight: standalone + near bottom wins over embedded + near center
+          const score = prominence * 0.5 + cyNorm * 0.5 - distNorm * 0.05;
+          allCandidates.push({ num, score: score.toFixed(3), prominence: prominence.toFixed(2), cyNorm: cyNorm.toFixed(2), text: line.text });
+          if (score > bestScore) { bestScore = score; best = { line, num }; }
+        }
+        if (pageNum <= 4 && allCandidates.length > 0) {
+          console.group(`Page ${pageNum} [${rx0},${ry0}→${rx1},${ry1}] candidates:`);
+          allCandidates.forEach(c => console.log(`  score=${c.score} prom=${c.prominence} cy=${c.cyNorm} num="${c.num}" | ${JSON.stringify(c.text.slice(0,60))}`));
+          console.groupEnd();
+        }
+
+        if (!best) continue;
+
+        const sheetNum = best.num;
+        const sheetCY  = best.line.cy;
+        const sheetCX  = best.line.cx;
+
+        // Search ALL non-empty lines on the page for the title.
+        // Only filter NOISE_RE (address, phone, project#) — do NOT filter by SHEET_RE
+        // here because some title text legitimately contains patterns that look like
+        // sheet numbers (e.g. "REV001", "SHT100", room numbers, etc.).
+        const halfPageW = vp.width * 0.5;
+        const aboveLines = nonEmpty
+          .filter(l =>
+            l.cy < sheetCY - lineTol &&           // strictly above the sheet number
+            l.cy > sheetCY - vp.height * 0.35 &&  // within 35% of page height above
+            Math.abs(l.cx - sheetCX) < halfPageW && // same horizontal half of page
+            !NOISE_RE.test(l.text) &&
+            l.text.length >= 3
+          )
+          .sort((a, b) => b.cy - a.cy); // closest to sheet# first
+
+        // Debug: log what we see above this sheet number (first 4 pages)
+        if (pageNum <= 4) {
+          console.group(`Page ${pageNum} — sheet# "${sheetNum}" cy=${Math.round(sheetCY)}`);
+          aboveLines.slice(0, 6).forEach((l, i) =>
+            console.log(`  [${i}] gap=${Math.round(sheetCY - l.cy)}px | ${JSON.stringify(l.text)}`));
+          if (aboveLines.length === 0) console.warn('  (no lines found above sheet number)');
+          console.groupEnd();
+        }
+
+        // Walk upward collecting consecutive valid lines.
+        const titleLines = [];
+        let prevCY = sheetCY;
+        for (const l of aboveLines) {
+          if (prevCY - l.cy > lineTol * 12 && titleLines.length > 0) break;
+          titleLines.unshift(l.text);
+          prevCY = l.cy;
+          if (titleLines.length >= 3) break;
+        }
+
+        return { num: sheetNum, title: titleLines.join(' ').replace(/['"]/g, '').trim() };
+      }
+
+      return null;
+    }
+
+    function groupIntoLines(items, tol) {
+      const lines = [];
+      let cur = [], curCX = [], curCY = [], lastCY = null;
+      for (const item of items) {
+        if (lastCY !== null && Math.abs(item.cy - lastCY) > tol) {
+          if (cur.length) lines.push({
+            text: cur.join(' ').trim(),
+            cx:   curCX.reduce((a, b) => a + b, 0) / curCX.length,
+            cy:   curCY.reduce((a, b) => a + b, 0) / curCY.length,
+          });
+          cur = []; curCX = []; curCY = [];
+        }
+        cur.push(item.str);
+        curCX.push(item.cx);
+        curCY.push(item.cy);
+        lastCY = item.cy;
+      }
+      if (cur.length) lines.push({
+        text: cur.join(' ').trim(),
+        cx:   curCX.reduce((a, b) => a + b, 0) / curCX.length,
+        cy:   curCY.reduce((a, b) => a + b, 0) / curCY.length,
+      });
+      return lines;
+    }
+
+    // ── Run extraction across all pages ──────────────────────────────────────
+    async function runExtraction(forcedRegionFrac) {
+      const sheets  = [];
+      const seen    = new Set();
+      const p1Lines = [];  // collect page 1 lines for diagnostics
+
+      for (let p = 1; p <= pdfDoc.numPages; p++) {
+        const page   = await pdfDoc.getPage(p);
+        const result = await extractPage(page, forcedRegionFrac, p === 1 ? p1Lines : null, p);
+        if (!result || seen.has(result.num)) continue;
+        seen.add(result.num);
+        sheets.push({ number: result.num, title: result.title });
+      }
+
+      if (sheets.length === 0) {
+        // Log full page 1 text to console for debugging
+        console.group('Sheet extractor — no matches found. Page 1 text dump:');
+        p1Lines.forEach((l, i) => console.log(i, JSON.stringify(l)));
+        console.groupEnd();
+        const hint = p1Lines.length
+          ? `No sheet numbers matched. Page 1 has ${p1Lines.length} text lines — check the browser console (F12) to see what was extracted and identify the sheet number format.`
+          : 'No text found on page 1. The PDF may use image-only pages or a non-standard encoding.';
+        setStatus(hint, 'error');
+        return;
+      }
+
+      setStatus(sheets.length + ' sheets extracted.', 'success');
+      renderTable(sheets);
+    }
+
+    // ── Refine region (optional fallback) ────────────────────────────────────
+    refineBtn.addEventListener('click', () => {
+      refining = !refining;
+      refineBtn.classList.toggle('active', refining);
+      refineBar.style.display = refining ? 'flex' : 'none';
+      overlayCanvas.style.cursor = refining ? 'crosshair' : 'default';
+      if (!refining) clearOverlay();
+    });
+
+    clearCropBtn.addEventListener('click', () => {
+      cropRect = null;
+      clearOverlay();
+    });
+
+    reparseBtn.addEventListener('click', async () => {
+      if (!cropRect) { setStatus('Draw a region on the preview first.', 'error'); return; }
+      // Convert stored canvas-fraction rect to the fraction format AUTO_REGIONS uses
+      const forcedRegion = [cropRect.x0, cropRect.y0, cropRect.x1, cropRect.y1];
+      setStatus('Re-parsing with selected region…', 'active');
+      tableWrap.classList.remove('visible');
+      await runExtraction(forcedRegion);
+      refining = false;
+      refineBtn.classList.remove('active');
+      refineBar.style.display = 'none';
+      overlayCanvas.style.cursor = 'default';
+    });
+
+    // Drag-to-crop on overlay canvas
+    (() => {
+      let dragging = false, sx = 0, sy = 0;
+
+      function canvasXY(e) {
+        const scaleX = overlayCanvas.width  / overlayCanvas.offsetWidth;
+        const scaleY = overlayCanvas.height / overlayCanvas.offsetHeight;
+        return { x: e.offsetX * scaleX, y: e.offsetY * scaleY };
+      }
+
+      overlayCanvas.addEventListener('mousedown', e => {
+        if (!refining) return;
+        ({ x: sx, y: sy } = canvasXY(e));
+        dragging = true;
+      });
+
+      overlayCanvas.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const { x: ex, y: ey } = canvasXY(e);
+        drawOverlay(sx, sy, ex, ey);
+      });
+
+      overlayCanvas.addEventListener('mouseup', e => {
+        if (!dragging) return;
+        dragging = false;
+        const { x: ex, y: ey } = canvasXY(e);
+        drawOverlay(sx, sy, ex, ey);
+        const pw = overlayCanvas.width, ph = overlayCanvas.height;
+        cropRect = {
+          x0: Math.min(sx, ex) / pw,
+          y0: Math.min(sy, ey) / ph,
+          x1: Math.max(sx, ex) / pw,
+          y1: Math.max(sy, ey) / ph,
+        };
+      });
+    })();
+
+    function drawOverlay(sx, sy, ex, ey) {
+      const ctx = overlayCanvas.getContext('2d');
+      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      ctx.fillStyle   = 'rgba(79,124,255,0.12)';
+      ctx.strokeStyle = '#4f7cff';
+      ctx.lineWidth   = 1.5;
+      ctx.fillRect(sx, sy, ex - sx, ey - sy);
+      ctx.strokeRect(sx, sy, ex - sx, ey - sy);
+    }
+
+    function clearOverlay() {
+      overlayCanvas.getContext('2d').clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    }
+
+    // ── Table ─────────────────────────────────────────────────────────────────
+    function renderTable(sheets) {
+      sheetBody.innerHTML = '';
+      sheets.forEach(s => addRow(s.number, s.title));
+      parsedCount.textContent = sheetBody.rows.length + ' sheets found';
+      tableWrap.classList.add('visible');
+    }
+
+    function addRow(num, title) {
+      const p  = resolveParams(num);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="cell-input" value="${esc(num)}" placeholder="E-101"></td>
+        <td><input class="cell-input" value="${esc(title)}" placeholder="Sheet title"></td>
+        <td><input class="cell-input" value="${esc(p.discipline)}" readonly></td>
+        <td><input class="cell-input" value="${p.major}" readonly></td>
+        <td><input class="cell-input" value="${p.minor}" readonly></td>
+        <td class="row-del" title="Remove row">×</td>`;
+      // Re-resolve discipline when sheet number is edited
+      tr.querySelector('input').addEventListener('change', function () {
+        const p2 = resolveParams(this.value.trim().toUpperCase());
+        const inputs = tr.querySelectorAll('input');
+        inputs[2].value = p2.discipline;
+        inputs[3].value = p2.major;
+        inputs[4].value = p2.minor;
+      });
+      tr.querySelector('.row-del').addEventListener('click', () => { tr.remove(); updateCount(); });
+      sheetBody.appendChild(tr);
+      updateCount();
+    }
+
+    function updateCount() { parsedCount.textContent = sheetBody.rows.length + ' sheets'; }
+
+    function esc(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function setStatus(msg, type) {
+      toolStatus.textContent = msg;
+      toolStatus.className   = 'tool-status' + (type ? ' ' + type : '');
+    }
+
+    addRowBtn.addEventListener('click', () => {
+      addRow('', '');
+      sheetBody.lastElementChild.querySelector('input').focus();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      pdfDoc = null; cropRect = null; refining = false;
+      sheetBody.innerHTML = '';
+      tableWrap.classList.remove('visible');
+      previewWrap.classList.remove('visible');
+      refineWrap.classList.remove('visible');
+      refineBar.style.display = 'none';
+      refineBtn.classList.remove('active');
+      setStatus('');
+      fileInput.value = '';
+      clearOverlay();
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const rows = Array.from(sheetBody.rows).map(tr => {
+        const inputs = tr.querySelectorAll('input');
+        const q = v => '"' + (v || '').trim().replace(/"/g, '""') + '"';
+        return [q(inputs[0].value), q(inputs[1].value), q(inputs[2].value),
+                inputs[3].value.trim(), inputs[4].value.trim()].join(',');
+      });
+      const csv  = 'NUMBER,SHEET NAME,DISCIPLINE,ORDER-MAJOR,ORDER-MINOR\n' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a    = document.createElement('a');
+      a.href     = URL.createObjectURL(blob);
+      a.download = 'consultant-sheet-list.csv';
+      a.click();
+    });
+  </script>
+</body>
+</html>
