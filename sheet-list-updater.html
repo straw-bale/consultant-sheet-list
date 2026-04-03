@@ -75,17 +75,23 @@
     .preview-wrap {
       display: none;
       border-top: 1px solid #222;
-      padding: 16px 24px;
       background: #0f0f0f;
     }
     .preview-wrap.visible { display: block; }
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px 10px;
+    }
     .preview-label {
       font-size: 0.72rem;
       color: #444;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      margin-bottom: 10px;
+      margin-bottom: 0;
     }
+    .region-tools { display: flex; gap: 6px; align-items: center; }
     #pageCanvas {
       display: block;
       max-width: 100%;
@@ -97,24 +103,39 @@
     .refine-wrap {
       display: none;
       position: relative;
+      padding: 0 24px;
     }
     .refine-wrap.visible { display: block; }
     #overlayCanvas {
       position: absolute;
-      top: 0; left: 0;
-      cursor: crosshair;
+      top: 0; left: 24px;
+      cursor: default;
       max-width: 100%;
-    }
-    .refine-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 10px;
     }
     .refine-hint {
       font-size: 0.75rem;
       color: #555;
+      padding: 8px 24px 14px;
+      min-height: 28px;
     }
+    .btn-region-num {
+      border-color: #3a2a10;
+      background: #1e1500;
+      color: #aa8840;
+      font-size: 0.7rem;
+      padding: 2px 10px;
+    }
+    .btn-region-num:hover { border-color: #f59e0b; color: #f59e0b; }
+    .btn-region-num.active { border-color: #f59e0b; color: #f59e0b; }
+    .btn-region-title {
+      border-color: #1a2a4a;
+      background: #0d1830;
+      color: #4a7aaa;
+      font-size: 0.7rem;
+      padding: 2px 10px;
+    }
+    .btn-region-title:hover { border-color: #4f7cff; color: #7aacf0; }
+    .btn-region-title.active { border-color: #4f7cff; color: #7aacf0; }
 
     /* ── Sheet table ── */
     .sheet-table-wrap {
@@ -284,18 +305,20 @@
 
           <!-- Page 1 preview -->
           <div class="preview-wrap" id="previewWrap">
-            <p class="preview-label">Page 1 preview</p>
+            <div class="preview-header">
+              <p class="preview-label">Page 1 preview — draw regions to pin exact title block cells</p>
+              <div class="region-tools">
+                <button class="btn btn-region-num" id="numRegionBtn">Sheet # region</button>
+                <button class="btn btn-region-title" id="titleRegionBtn">Title region</button>
+                <button class="btn" id="clearRegionsBtn">Clear</button>
+                <button class="btn btn-primary" id="reparseBtn">Re-parse</button>
+              </div>
+            </div>
             <div class="refine-wrap" id="refineWrap">
               <canvas id="pageCanvas"></canvas>
               <canvas id="overlayCanvas"></canvas>
             </div>
-            <div class="refine-bar" id="refineBar" style="display:none">
-              <span class="refine-hint">Draw a box over the title block area, then click Re-parse.</span>
-              <div style="display:flex;gap:8px;">
-                <button class="btn" id="clearCropBtn">Clear</button>
-                <button class="btn btn-primary" id="reparseBtn">Re-parse</button>
-              </div>
-            </div>
+            <p class="refine-hint" id="refineHint"></p>
           </div>
 
           <!-- Sheet table -->
@@ -306,7 +329,6 @@
                 <span class="sheet-note">Edit any cells before downloading</span>
               </div>
               <div style="display:flex;gap:8px;align-items:center;">
-                <button class="btn btn-refine" id="refineBtn">Refine region</button>
                 <button class="btn btn-add" id="addRowBtn">+ Add row</button>
               </div>
             </div>
@@ -357,24 +379,25 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
 
     // ── DOM refs ─────────────────────────────────────────────────────────────
-    const dropZone      = document.getElementById('dropZone');
-    const fileInput     = document.getElementById('fileInput');
-    const browseBtn     = document.getElementById('browseBtn');
-    const toolStatus    = document.getElementById('toolStatus');
-    const previewWrap   = document.getElementById('previewWrap');
-    const refineWrap    = document.getElementById('refineWrap');
-    const pageCanvas    = document.getElementById('pageCanvas');
-    const overlayCanvas = document.getElementById('overlayCanvas');
-    const refineBar     = document.getElementById('refineBar');
-    const clearCropBtn  = document.getElementById('clearCropBtn');
-    const reparseBtn    = document.getElementById('reparseBtn');
-    const tableWrap     = document.getElementById('tableWrap');
-    const sheetBody     = document.getElementById('sheetBody');
-    const parsedCount   = document.getElementById('parsedCount');
-    const refineBtn     = document.getElementById('refineBtn');
-    const addRowBtn     = document.getElementById('addRowBtn');
-    const resetBtn      = document.getElementById('resetBtn');
-    const downloadBtn   = document.getElementById('downloadBtn');
+    const dropZone       = document.getElementById('dropZone');
+    const fileInput      = document.getElementById('fileInput');
+    const browseBtn      = document.getElementById('browseBtn');
+    const toolStatus     = document.getElementById('toolStatus');
+    const previewWrap    = document.getElementById('previewWrap');
+    const refineWrap     = document.getElementById('refineWrap');
+    const pageCanvas     = document.getElementById('pageCanvas');
+    const overlayCanvas  = document.getElementById('overlayCanvas');
+    const numRegionBtn   = document.getElementById('numRegionBtn');
+    const titleRegionBtn = document.getElementById('titleRegionBtn');
+    const clearRegionsBtn= document.getElementById('clearRegionsBtn');
+    const reparseBtn     = document.getElementById('reparseBtn');
+    const refineHint     = document.getElementById('refineHint');
+    const tableWrap      = document.getElementById('tableWrap');
+    const sheetBody      = document.getElementById('sheetBody');
+    const parsedCount    = document.getElementById('parsedCount');
+    const addRowBtn      = document.getElementById('addRowBtn');
+    const resetBtn       = document.getElementById('resetBtn');
+    const downloadBtn    = document.getElementById('downloadBtn');
 
     // ── Constants ────────────────────────────────────────────────────────────
     const DISCIPLINE_MAP = {
@@ -391,8 +414,9 @@
     // ── State ────────────────────────────────────────────────────────────────
     let pdfDoc      = null;
     let pageVP      = null;
-    let cropRect    = null;
-    let refining    = false;
+    let numRegion   = null;   // {x0,y0,x1,y1} as page fractions
+    let titleRegion = null;
+    let activeMode  = null;   // 'num' | 'title' | null
     let currentFile = null;
 
     function resolveParams(num) {
@@ -425,8 +449,9 @@
     async function handleFile(file) {
       setStatus('Loading ' + file.name + '…', 'active');
       tableWrap.classList.remove('visible');
-      cropRect    = null;
-      refining    = false;
+      numRegion   = null;
+      titleRegion = null;
+      activeMode  = null;
       currentFile = file;
 
       const buf = await file.arrayBuffer();
@@ -434,7 +459,7 @@
 
       await renderPreview();
       setStatus('Parsing ' + pdfDoc.numPages + ' pages…', 'active');
-      await runExtractionAPI(file, null);
+      await runExtractionAPI();
     }
 
     // ── Render page 1 preview ────────────────────────────────────────────────
@@ -457,22 +482,17 @@
     }
 
     // ── API extraction via PyMuPDF ───────────────────────────────────────────
-    async function runExtractionAPI(file, forcedRegion) {
+    async function runExtractionAPI() {
       const formData = new FormData();
-      formData.append('file', file);
-      if (forcedRegion) formData.append('region', JSON.stringify(forcedRegion));
+      formData.append('file', currentFile);
+      if (numRegion)   formData.append('number_region', JSON.stringify([numRegion.x0,   numRegion.y0,   numRegion.x1,   numRegion.y1]));
+      if (titleRegion) formData.append('title_region',  JSON.stringify([titleRegion.x0, titleRegion.y0, titleRegion.x1, titleRegion.y1]));
 
       try {
         const resp = await fetch('/api/extract', { method: 'POST', body: formData });
         const data = await resp.json();
-
         if (data.error) { setStatus(data.error, 'error'); return; }
-
-        if (!data.sheets || data.sheets.length === 0) {
-          setStatus('No sheet numbers found.', 'error');
-          return;
-        }
-
+        if (!data.sheets || data.sheets.length === 0) { setStatus('No sheet numbers found.', 'error'); return; }
         setStatus(data.sheets.length + ' sheets extracted.', 'success');
         renderTable(data.sheets);
       } catch (err) {
@@ -480,31 +500,67 @@
       }
     }
 
-    // ── Refine region (optional fallback) ────────────────────────────────────
-    refineBtn.addEventListener('click', () => {
-      refining = !refining;
-      refineBtn.classList.toggle('active', refining);
-      refineBar.style.display = refining ? 'flex' : 'none';
-      overlayCanvas.style.cursor = refining ? 'crosshair' : 'default';
-      if (!refining) clearOverlay();
-    });
+    // ── Region buttons ────────────────────────────────────────────────────────
+    numRegionBtn.addEventListener('click',   () => setActiveMode(activeMode === 'num'   ? null : 'num'));
+    titleRegionBtn.addEventListener('click', () => setActiveMode(activeMode === 'title' ? null : 'title'));
 
-    clearCropBtn.addEventListener('click', () => {
-      cropRect = null;
-      clearOverlay();
+    clearRegionsBtn.addEventListener('click', () => {
+      numRegion = null; titleRegion = null;
+      drawRegions(); updateHint();
     });
 
     reparseBtn.addEventListener('click', async () => {
-      if (!cropRect) { setStatus('Draw a region on the preview first.', 'error'); return; }
-      const forcedRegion = [cropRect.x0, cropRect.y0, cropRect.x1, cropRect.y1];
-      setStatus('Re-parsing with selected region…', 'active');
+      if (!currentFile) return;
+      setActiveMode(null);
+      setStatus('Re-parsing…', 'active');
       tableWrap.classList.remove('visible');
-      await runExtractionAPI(currentFile, forcedRegion);
-      refining = false;
-      refineBtn.classList.remove('active');
-      refineBar.style.display = 'none';
-      overlayCanvas.style.cursor = 'default';
+      await runExtractionAPI();
     });
+
+    function setActiveMode(mode) {
+      activeMode = mode;
+      numRegionBtn.classList.toggle('active',   mode === 'num');
+      titleRegionBtn.classList.toggle('active', mode === 'title');
+      overlayCanvas.style.cursor = mode ? 'crosshair' : 'default';
+      updateHint();
+    }
+
+    function updateHint() {
+      if (activeMode === 'num')   { refineHint.textContent = 'Draw a box over the sheet number cell — applied to every page.'; return; }
+      if (activeMode === 'title') { refineHint.textContent = 'Draw a box over the sheet title cell — applied to every page.'; return; }
+      const parts = [];
+      if (numRegion)   parts.push('sheet # pinned');
+      if (titleRegion) parts.push('title pinned');
+      refineHint.textContent = parts.length ? parts.join(' · ') + ' — click Re-parse to apply.' : '';
+    }
+
+    // ── Overlay drawing ───────────────────────────────────────────────────────
+    function drawRegions(activeDrag = null) {
+      const ctx = overlayCanvas.getContext('2d');
+      const w = overlayCanvas.width, h = overlayCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+      if (numRegion)   drawBox(ctx, numRegion,   w, h, 'rgba(245,158,11,0.15)', '#f59e0b', 'Sheet #');
+      if (titleRegion) drawBox(ctx, titleRegion, w, h, 'rgba(79,124,255,0.15)', '#4f7cff', 'Title');
+      if (activeDrag) {
+        const color = activeMode === 'num' ? '#f59e0b' : '#4f7cff';
+        const fill  = activeMode === 'num' ? 'rgba(245,158,11,0.15)' : 'rgba(79,124,255,0.15)';
+        const { sx, sy, ex, ey } = activeDrag;
+        ctx.fillStyle = fill; ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        ctx.fillRect(sx, sy, ex - sx, ey - sy);
+        ctx.strokeRect(sx, sy, ex - sx, ey - sy);
+      }
+    }
+
+    function drawBox(ctx, rect, w, h, fill, stroke, label) {
+      const x = rect.x0 * w, y = rect.y0 * h;
+      const bw = (rect.x1 - rect.x0) * w, bh = (rect.y1 - rect.y0) * h;
+      ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+      ctx.fillRect(x, y, bw, bh);
+      ctx.strokeRect(x, y, bw, bh);
+      ctx.fillStyle = stroke;
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(label, x + 5, y + 14);
+    }
 
     // Drag-to-crop on overlay canvas
     (() => {
@@ -517,7 +573,7 @@
       }
 
       overlayCanvas.addEventListener('mousedown', e => {
-        if (!refining) return;
+        if (!activeMode) return;
         ({ x: sx, y: sy } = canvasXY(e));
         dragging = true;
       });
@@ -525,37 +581,24 @@
       overlayCanvas.addEventListener('mousemove', e => {
         if (!dragging) return;
         const { x: ex, y: ey } = canvasXY(e);
-        drawOverlay(sx, sy, ex, ey);
+        drawRegions({ sx, sy, ex, ey });
       });
 
       overlayCanvas.addEventListener('mouseup', e => {
         if (!dragging) return;
         dragging = false;
         const { x: ex, y: ey } = canvasXY(e);
-        drawOverlay(sx, sy, ex, ey);
         const pw = overlayCanvas.width, ph = overlayCanvas.height;
-        cropRect = {
-          x0: Math.min(sx, ex) / pw,
-          y0: Math.min(sy, ey) / ph,
-          x1: Math.max(sx, ex) / pw,
-          y1: Math.max(sy, ey) / ph,
+        const rect = {
+          x0: Math.min(sx, ex) / pw, y0: Math.min(sy, ey) / ph,
+          x1: Math.max(sx, ex) / pw, y1: Math.max(sy, ey) / ph,
         };
+        if (activeMode === 'num') numRegion = rect;
+        else titleRegion = rect;
+        drawRegions();
+        updateHint();
       });
     })();
-
-    function drawOverlay(sx, sy, ex, ey) {
-      const ctx = overlayCanvas.getContext('2d');
-      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-      ctx.fillStyle   = 'rgba(79,124,255,0.12)';
-      ctx.strokeStyle = '#4f7cff';
-      ctx.lineWidth   = 1.5;
-      ctx.fillRect(sx, sy, ex - sx, ey - sy);
-      ctx.strokeRect(sx, sy, ex - sx, ey - sy);
-    }
-
-    function clearOverlay() {
-      overlayCanvas.getContext('2d').clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-    }
 
     // ── Table ─────────────────────────────────────────────────────────────────
     function renderTable(sheets) {
@@ -605,16 +648,17 @@
     });
 
     resetBtn.addEventListener('click', () => {
-      pdfDoc = null; cropRect = null; refining = false; currentFile = null;
+      pdfDoc = null; numRegion = null; titleRegion = null; activeMode = null; currentFile = null;
       sheetBody.innerHTML = '';
       tableWrap.classList.remove('visible');
       previewWrap.classList.remove('visible');
       refineWrap.classList.remove('visible');
-      refineBar.style.display = 'none';
-      refineBtn.classList.remove('active');
+      numRegionBtn.classList.remove('active');
+      titleRegionBtn.classList.remove('active');
+      refineHint.textContent = '';
+      overlayCanvas.getContext('2d').clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       setStatus('');
       fileInput.value = '';
-      clearOverlay();
     });
 
     downloadBtn.addEventListener('click', () => {
