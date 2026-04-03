@@ -819,7 +819,7 @@
         <section>
           <div class="tool-box">
             <div class="panel-titlebar">
-              <span>PDF Import Utility</span>
+              <span>Drawing Sheet Extractor — PDF.js</span>
               <div class="panel-titlebar-btns">
                 <div class="titlebar-btn">_</div>
                 <div class="titlebar-btn">&#9633;</div>
@@ -832,7 +832,7 @@
                 Drop a consultant PDF here, or
                 <strong id="browseBtn">browse</strong>
               </p>
-              <p class="drop-zone-sub">Extracted server-side with PyMuPDF</p>
+              <p class="drop-zone-sub">Extracted client-side · no upload, no size limit</p>
               <input
                 type="file"
                 id="fileInput"
@@ -905,65 +905,20 @@
           </div>
         </section>
 
-        <!-- ── Client-side panel ── -->
-        <section>
-          <div class="tool-box">
-            <div class="panel-titlebar">
-              <span>Client-Side Extraction (PDF.js) — uses same pinned regions above</span>
-              <div class="panel-titlebar-btns">
-                <div class="titlebar-btn">_</div>
-                <div class="titlebar-btn">&#9633;</div>
-                <div class="titlebar-btn">&#10005;</div>
-              </div>
-            </div>
-            <div class="drop-zone" id="dropZone2">
-              <p class="drop-zone-label">Drop the same PDF here, or <strong id="browseBtn2">browse</strong></p>
-              <p class="drop-zone-sub">Extracted client-side with PDF.js — no server, no size limit</p>
-              <input type="file" id="fileInput2" accept=".pdf" style="display:none">
-            </div>
-            <div class="tool-status" id="toolStatus2"></div>
-            <div class="sheet-table-wrap" id="tableWrap2">
-              <div class="sheet-toolbar">
-                <div class="sheet-toolbar-left">
-                  <span class="parsed-count" id="parsedCount2"></span>
-                  <span class="sheet-note">PDF.js result</span>
-                </div>
-              </div>
-              <table class="sheet-table" id="sheetTable2">
-                <thead>
-                  <tr>
-                    <th style="width:110px">Number</th>
-                    <th>Sheet Name</th>
-                    <th style="width:130px">Discipline</th>
-                    <th style="width:90px">Order Major</th>
-                    <th style="width:90px">Order Minor</th>
-                  </tr>
-                </thead>
-                <tbody id="sheetBody2"></tbody>
-              </table>
-              <div class="sheet-footer">
-                <button class="btn btn-primary" id="downloadBtn2">Download CSV</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <!-- ── Info ── -->
         <section>
           <p class="section-label">How It Works</p>
           <div class="info-note">
-            <strong>Automatic extraction</strong> — the tool scans the
-            bottom-right corner of each page (most common title block position),
-            then bottom-left, then the full page as a fallback. No region
-            selection is required. If any titles come out wrong, use the
-            <strong>Refine region</strong> button to draw a crop box and
-            re-parse. <br /><br />
-            <strong>Discipline + sort order</strong> are derived from the sheet
-            number prefix: S/SD/SS → Structural · P → Plumbing · M → Mechanical
-            · E → Electrical · FP → Fire Protection · T → Technology
-            <br /><br />
-            <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE ·
-            ORDER-MAJOR · ORDER-MINOR — ready to import with the pyRevit button.
+            <strong>Drop a PDF</strong> — sheet numbers and titles are extracted
+            client-side using PDF.js. No file is uploaded. Works on any size PDF.<br /><br />
+            <strong>Pin regions</strong> — use <em>Sheet # region</em> and <em>Title region</em>
+            to draw exact boxes over the title block cells. Applied to every page.
+            Without pins, the tool auto-scans the bottom-right corner first, then
+            bottom-left, then the full page.<br /><br />
+            <strong>Discipline + sort order</strong> are derived from the sheet number prefix:
+            S/SD/SS → Structural · C → Civil · P → Plumbing · M → Mechanical ·
+            E → Electrical · FP → Fire Protection · T → Technology<br /><br />
+            <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE · ORDER-MAJOR · ORDER-MINOR
           </div>
         </section>
       </div>
@@ -1003,6 +958,8 @@
       const downloadBtn = document.getElementById("downloadBtn");
 
       // ── Constants ────────────────────────────────────────────────────────────
+      const SHEET_RE_JS = /\b([A-Z]{1,3}-\d{1,4}[A-Z]?|[A-Z]{1,3}\d{3,4}[A-Z]?)\b/;
+
       const DISCIPLINE_MAP = {
         S: ["STRUCTURAL", 300],
         SD: ["STRUCTURAL", 300],
@@ -1029,7 +986,6 @@
       let numRegion = null; // {x0,y0,x1,y1} as page fractions
       let titleRegion = null;
       let activeMode = null; // 'num' | 'title' | null
-      let currentFile = null;
 
       function resolveParams(num) {
         const prefix = num.includes("-")
@@ -1074,14 +1030,16 @@
         numRegion = null;
         titleRegion = null;
         activeMode = null;
-        currentFile = file;
 
         const buf = await file.arrayBuffer();
         pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
 
         await renderPreview();
-        setStatus("Parsing " + pdfDoc.numPages + " pages…", "active");
-        await runExtractionAPI();
+        setStatus('Extracting ' + pdfDoc.numPages + ' pages…', 'active');
+        const sheets = await extractClientSide(pdfDoc);
+        if (!sheets.length) { setStatus('No sheets found.', 'error'); return; }
+        setStatus(sheets.length + ' sheets extracted.', 'success');
+        renderTable(sheets);
       }
 
       // ── Render page 1 preview ────────────────────────────────────────────────
@@ -1108,50 +1066,51 @@
         refineWrap.classList.add("visible");
       }
 
-      // ── API extraction via PyMuPDF ───────────────────────────────────────────
-      async function runExtractionAPI() {
-        const formData = new FormData();
-        formData.append("file", currentFile);
-        if (numRegion)
-          formData.append(
-            "number_region",
-            JSON.stringify([
-              numRegion.x0,
-              numRegion.y0,
-              numRegion.x1,
-              numRegion.y1,
-            ]),
-          );
-        if (titleRegion)
-          formData.append(
-            "title_region",
-            JSON.stringify([
-              titleRegion.x0,
-              titleRegion.y0,
-              titleRegion.x1,
-              titleRegion.y1,
-            ]),
-          );
-
-        try {
-          const resp = await fetch("/api/extract", {
-            method: "POST",
-            body: formData,
-          });
-          const data = await resp.json();
-          if (data.error) {
-            setStatus(data.error, "error");
-            return;
+      // ── Client-side extraction via PDF.js ───────────────────────────────────
+      async function extractClientSide(doc) {
+        const sheets = [], seen = new Set();
+        for (let p = 1; p <= doc.numPages; p++) {
+          const page    = await doc.getPage(p);
+          const vp      = page.getViewport({ scale: 1 });
+          const pw = vp.width, ph = vp.height;
+          const content = await page.getTextContent();
+          const items = content.items
+            .filter(it => it.str && it.str.trim())
+            .map(it => {
+              const [cx, cy] = pdfjsLib.Util.applyTransform(
+                [it.transform[4], it.transform[5]], vp.transform
+              );
+              return { str: it.str.trim(), x: cx / pw, y: cy / ph };
+            });
+          let num = null, title = '';
+          if (numRegion) {
+            const inReg = items
+              .filter(it => it.x >= numRegion.x0 && it.x <= numRegion.x1 &&
+                            it.y >= numRegion.y0 && it.y <= numRegion.y1)
+              .sort((a, b) => a.y - b.y || a.x - b.x);
+            num = inReg.map(it => it.str).join(' ').trim().split(/\s+/)[0] || null;
+          } else {
+            const regions = [[0.45,0.5,1,1],[0,0.5,0.55,1],[0,0,1,1]];
+            outer: for (const [rx0,ry0,rx1,ry1] of regions) {
+              for (const it of items) {
+                if (it.x < rx0 || it.x > rx1 || it.y < ry0 || it.y > ry1) continue;
+                const m = SHEET_RE_JS.exec(it.str);
+                if (m && !seen.has(m[0])) { num = m[0]; break outer; }
+              }
+            }
           }
-          if (!data.sheets || data.sheets.length === 0) {
-            setStatus("No sheet numbers found.", "error");
-            return;
+          if (!num || seen.has(num)) continue;
+          if (titleRegion) {
+            const inReg = items
+              .filter(it => it.x >= titleRegion.x0 && it.x <= titleRegion.x1 &&
+                            it.y >= titleRegion.y0 && it.y <= titleRegion.y1)
+              .sort((a, b) => a.y - b.y || a.x - b.x);
+            title = inReg.map(it => it.str).join(' ').trim();
           }
-          setStatus(data.sheets.length + " sheets extracted.", "success");
-          renderTable(data.sheets);
-        } catch (err) {
-          setStatus("API error: " + err.message, "error");
+          seen.add(num);
+          sheets.push({ number: num, title });
         }
+        return sheets;
       }
 
       // ── Region buttons ────────────────────────────────────────────────────────
@@ -1169,12 +1128,15 @@
         updateHint();
       });
 
-      reparseBtn.addEventListener("click", async () => {
-        if (!currentFile) return;
+      reparseBtn.addEventListener('click', async () => {
+        if (!pdfDoc) return;
         setActiveMode(null);
-        setStatus("Re-parsing…", "active");
-        tableWrap.classList.remove("visible");
-        await runExtractionAPI();
+        setStatus('Re-parsing…', 'active');
+        tableWrap.classList.remove('visible');
+        const sheets = await extractClientSide(pdfDoc);
+        if (!sheets.length) { setStatus('No sheets found.', 'error'); return; }
+        setStatus(sheets.length + ' sheets extracted.', 'success');
+        renderTable(sheets);
       });
 
       function setActiveMode(mode) {
@@ -1363,7 +1325,6 @@
         numRegion = null;
         titleRegion = null;
         activeMode = null;
-        currentFile = null;
         sheetBody.innerHTML = "";
         tableWrap.classList.remove("visible");
         previewWrap.classList.remove("visible");
@@ -1397,139 +1358,6 @@
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = "consultant-sheet-list.csv";
-        a.click();
-      });
-      // ── Panel 2: client-side PDF.js extraction ───────────────────────────────
-      const dropZone2    = document.getElementById('dropZone2');
-      const fileInput2   = document.getElementById('fileInput2');
-      const browseBtn2   = document.getElementById('browseBtn2');
-      const toolStatus2  = document.getElementById('toolStatus2');
-      const tableWrap2   = document.getElementById('tableWrap2');
-      const sheetBody2   = document.getElementById('sheetBody2');
-      const parsedCount2 = document.getElementById('parsedCount2');
-      const downloadBtn2 = document.getElementById('downloadBtn2');
-
-      const SHEET_RE_JS = /\b([A-Z]{1,3}-\d{1,4}[A-Z]?|[A-Z]{1,3}\d{3,4}[A-Z]?)\b/;
-
-      browseBtn2.addEventListener('click', () => fileInput2.click());
-      fileInput2.addEventListener('change', e => e.target.files[0] && handleFile2(e.target.files[0]));
-      dropZone2.addEventListener('dragover',  e => { e.preventDefault(); dropZone2.classList.add('drag-over'); });
-      dropZone2.addEventListener('dragleave', () => dropZone2.classList.remove('drag-over'));
-      dropZone2.addEventListener('drop', e => {
-        e.preventDefault();
-        dropZone2.classList.remove('drag-over');
-        const f = e.dataTransfer.files[0];
-        if (f && f.type === 'application/pdf') handleFile2(f);
-        else setStatus2('Please drop a PDF file.', 'error');
-      });
-
-      async function handleFile2(file) {
-        setStatus2('Loading ' + file.name + '…', 'active');
-        tableWrap2.classList.remove('visible');
-        const buf = await file.arrayBuffer();
-        const doc = await pdfjsLib.getDocument({ data: buf }).promise;
-        setStatus2('Extracting ' + doc.numPages + ' pages…', 'active');
-        const sheets = await extractClientSide(doc);
-        if (!sheets.length) { setStatus2('No sheets found.', 'error'); return; }
-        setStatus2(sheets.length + ' sheets extracted.', 'success');
-        renderTable2(sheets);
-      }
-
-      async function extractClientSide(doc) {
-        const sheets = [], seen = new Set();
-
-        for (let p = 1; p <= doc.numPages; p++) {
-          const page    = await doc.getPage(p);
-          const vp      = page.getViewport({ scale: 1 });
-          const pw = vp.width, ph = vp.height;
-          const content = await page.getTextContent();
-
-          // Convert text positions to page-fraction coords using the viewport
-          // transform — handles page rotation and non-standard MediaBox correctly.
-          const items = content.items
-            .filter(it => it.str && it.str.trim())
-            .map(it => {
-              const [cx, cy] = pdfjsLib.Util.applyTransform(
-                [it.transform[4], it.transform[5]], vp.transform
-              );
-              return { str: it.str.trim(), x: cx / pw, y: cy / ph };
-            });
-
-          let num = null, title = '';
-
-          if (numRegion) {
-            const inReg = items
-              .filter(it => it.x >= numRegion.x0 && it.x <= numRegion.x1 &&
-                            it.y >= numRegion.y0 && it.y <= numRegion.y1)
-              .sort((a, b) => a.y - b.y || a.x - b.x);
-            const text = inReg.map(it => it.str).join(' ').trim();
-            num = text.split(/\s+/)[0] || null;
-          } else {
-            // Auto-detect: scan bottom-right quadrant first, then full page
-            const regions = [
-              [0.45, 0.5, 1, 1],
-              [0,    0.5, 0.55, 1],
-              [0,    0,   1,    1],
-            ];
-            outer: for (const [rx0, ry0, rx1, ry1] of regions) {
-              for (const it of items) {
-                if (it.x < rx0 || it.x > rx1 || it.y < ry0 || it.y > ry1) continue;
-                const m = SHEET_RE_JS.exec(it.str);
-                if (m && !seen.has(m[0])) { num = m[0]; break outer; }
-              }
-            }
-          }
-
-          if (!num || seen.has(num)) continue;
-
-          if (titleRegion) {
-            const inReg = items
-              .filter(it => it.x >= titleRegion.x0 && it.x <= titleRegion.x1 &&
-                            it.y >= titleRegion.y0 && it.y <= titleRegion.y1)
-              .sort((a, b) => a.y - b.y || a.x - b.x);
-            title = inReg.map(it => it.str).join(' ').trim();
-          }
-
-          seen.add(num);
-          sheets.push({ number: num, title });
-        }
-        return sheets;
-      }
-
-      function renderTable2(sheets) {
-        sheetBody2.innerHTML = '';
-        sheets.forEach(s => {
-          const p  = resolveParams(s.number);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="padding:4px 8px;font-family:monospace;font-size:0.78rem">${esc(s.number)}</td>
-            <td style="padding:4px 8px;font-size:0.78rem">${esc(s.title)}</td>
-            <td style="padding:4px 8px;font-size:0.78rem;color:#666">${esc(p.discipline)}</td>
-            <td style="padding:4px 8px;font-size:0.78rem;color:#666">${p.major}</td>
-            <td style="padding:4px 8px;font-size:0.78rem;color:#666">${p.minor}</td>`;
-          sheetBody2.appendChild(tr);
-        });
-        parsedCount2.textContent = sheets.length + ' sheets found';
-        tableWrap2.classList.add('visible');
-      }
-
-      function setStatus2(msg, type) {
-        toolStatus2.textContent = msg;
-        toolStatus2.className = 'tool-status' + (type ? ' ' + type : '');
-      }
-
-      downloadBtn2.addEventListener('click', () => {
-        const rows = Array.from(sheetBody2.rows).map(tr => {
-          const cells = tr.querySelectorAll('td');
-          const q = v => '"' + (v || '').trim().replace(/"/g, '""') + '"';
-          return [q(cells[0].textContent), q(cells[1].textContent), q(cells[2].textContent),
-                  cells[3].textContent.trim(), cells[4].textContent.trim()].join(',');
-        });
-        const csv  = 'NUMBER,SHEET NAME,DISCIPLINE,ORDER-MAJOR,ORDER-MINOR\n' + rows.join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const a    = document.createElement('a');
-        a.href     = URL.createObjectURL(blob);
-        a.download = 'consultant-sheet-list-pdfjs.csv';
         a.click();
       });
     </script>
