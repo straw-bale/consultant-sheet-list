@@ -467,13 +467,13 @@
       .tool-box {
         background: #1a1a1a;
         border: 1px solid #2a2a2a;
-        border-radius: 10px;
+
         overflow: hidden;
       }
 
       .drop-zone {
         border: 2px dashed #2a2a2a;
-        border-radius: 8px;
+
         margin: 24px;
         padding: 48px 24px;
         text-align: center;
@@ -551,7 +551,7 @@
         display: block;
         max-width: 100%;
         border: 1px solid #1e1e1e;
-        border-radius: 4px;
+
       }
 
       /* ── Refine overlay ── */
@@ -643,7 +643,7 @@
       .btn {
         font-size: 0.75rem;
         padding: 5px 14px;
-        border-radius: 5px;
+
         border: 1px solid #2a2a2a;
         background: #1a1a1a;
         color: #888;
@@ -768,7 +768,7 @@
       .info-note {
         background: #191f2e;
         border: 1px solid #2a3560;
-        border-radius: 6px;
+
         padding: 0.9rem 1rem;
         color: #7a9aff;
         font-size: 0.82rem;
@@ -857,6 +857,8 @@
                     Title region
                   </button>
                   <button class="btn" id="clearRegionsBtn">Clear</button>
+                  <button class="btn" id="zoomOutBtn">−</button>
+                  <button class="btn" id="zoomInBtn">+</button>
                   <button class="btn btn-primary" id="reparseBtn">
                     Re-parse
                   </button>
@@ -985,7 +987,8 @@
       let pageVP = null;
       let numRegion = null; // {x0,y0,x1,y1} as page fractions
       let titleRegion = null;
-      let activeMode = null; // 'num' | 'title' | null
+      let activeMode  = null; // 'num' | 'title' | null
+      let zoomScale   = null; // current preview scale, set on first render
 
       function resolveParams(num) {
         const prefix = num.includes("-")
@@ -1043,28 +1046,37 @@
       }
 
       // ── Render page 1 preview ────────────────────────────────────────────────
-      async function renderPreview() {
+      async function renderPreview(scale = null) {
         const page = await pdfDoc.getPage(1);
-        const scale = Math.min(820 / page.getViewport({ scale: 1 }).width, 1.5);
+        const baseScale = Math.min(820 / page.getViewport({ scale: 1 }).width, 1.5);
+        if (scale === null) scale = baseScale;
+        zoomScale = scale;
         pageVP = page.getViewport({ scale });
 
         pageCanvas.width = pageVP.width;
         pageCanvas.height = pageVP.height;
         overlayCanvas.width = pageVP.width;
         overlayCanvas.height = pageVP.height;
-        overlayCanvas.style.width = pageCanvas.style.width =
-          pageCanvas.width + "px";
-        overlayCanvas.style.height = pageCanvas.style.height =
-          pageCanvas.height + "px";
+        overlayCanvas.style.width = pageCanvas.style.width = pageCanvas.width + 'px';
+        overlayCanvas.style.height = pageCanvas.style.height = pageCanvas.height + 'px';
 
-        await page.render({
-          canvasContext: pageCanvas.getContext("2d"),
-          viewport: pageVP,
-        }).promise;
-
-        previewWrap.classList.add("visible");
-        refineWrap.classList.add("visible");
+        await page.render({ canvasContext: pageCanvas.getContext('2d'), viewport: pageVP }).promise;
+        drawRegions();
+        previewWrap.classList.add('visible');
+        refineWrap.classList.add('visible');
       }
+
+      const zoomInBtn  = document.getElementById('zoomInBtn');
+      const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+      zoomInBtn.addEventListener('click',  () => pdfDoc && renderPreview(zoomScale * 1.25));
+      zoomOutBtn.addEventListener('click', () => pdfDoc && renderPreview(Math.max(zoomScale * 0.8, 0.3)));
+
+      refineWrap.addEventListener('wheel', e => {
+        if (!pdfDoc) return;
+        e.preventDefault();
+        renderPreview(e.deltaY < 0 ? zoomScale * 1.1 : Math.max(zoomScale * 0.9, 0.3));
+      }, { passive: false });
 
       // ── Client-side extraction via PDF.js ───────────────────────────────────
       async function extractClientSide(doc) {
@@ -1106,6 +1118,24 @@
                             it.y >= titleRegion.y0 && it.y <= titleRegion.y1)
               .sort((a, b) => a.y - b.y || a.x - b.x);
             title = inReg.map(it => it.str).join(' ').trim();
+          } else {
+            const NOISE = /PROJECT\s*#|PHONE|FAX|WWW\.|\.COM|SCALE|COPYRIGHT|^\d+$|\d{3}[-.\s]\d{3}/i;
+            const numItem = items.find(it => it.str.includes(num));
+            if (numItem) {
+              const candidates = items
+                .filter(it =>
+                  it.y < numItem.y &&
+                  it.y > numItem.y - 0.25 &&
+                  Math.abs(it.x - numItem.x) < 0.4 &&
+                  it.str.length >= 3 &&
+                  !NOISE.test(it.str) &&
+                  !SHEET_RE_JS.test(it.str)
+                )
+                .sort((a, b) => b.y - a.y)
+                .slice(0, 3)
+                .reverse();
+              title = candidates.map(it => it.str).join(' ').trim();
+            }
           }
           seen.add(num);
           sheets.push({ number: num, title });
@@ -1325,6 +1355,7 @@
         numRegion = null;
         titleRegion = null;
         activeMode = null;
+        zoomScale = null;
         sheetBody.innerHTML = "";
         tableWrap.classList.remove("visible");
         previewWrap.classList.remove("visible");
