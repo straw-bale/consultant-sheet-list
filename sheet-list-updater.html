@@ -406,7 +406,7 @@
               <div class="sheet-footer">
                 <button class="btn" id="resetBtn">Reset</button>
                 <button class="btn btn-primary" id="downloadBtn">
-                  Download CSV
+                  Download &amp; Copy CSV
                 </button>
               </div>
             </div>
@@ -979,6 +979,21 @@
         fileInput.value = "";
       });
 
+      function showToast(msg) {
+        const t = document.createElement('div');
+        t.textContent = msg;
+        Object.assign(t.style, {
+          position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+          background:'#1a1a2e', color:'#fff', padding:'10px 18px',
+          fontFamily:'"Courier New", monospace', fontSize:'0.8rem',
+          border:'2px solid #ffffff', boxShadow:'3px 3px 0 #00000060',
+          zIndex:'9999', opacity:'1', transition:'opacity 0.5s', whiteSpace:'nowrap'
+        });
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; }, 2500);
+        setTimeout(() => t.remove(), 3100);
+      }
+
       downloadBtn.addEventListener("click", () => {
         const rows = Array.from(sheetBody.rows).map((tr) => {
           const inputs = tr.querySelectorAll("input");
@@ -999,6 +1014,11 @@
         a.href = URL.createObjectURL(blob);
         a.download = "consultant-sheet-list.csv";
         a.click();
+        navigator.clipboard.writeText(csv).then(() => {
+          showToast('Sheet list copied to clipboard — switch back to Revit and click OK.');
+        }).catch(() => {
+          showToast('File downloaded. Clipboard copy failed — use Browse for CSV in Revit.');
+        });
       });
     </script>
   </body>
