@@ -243,6 +243,8 @@
       }
       .sheet-table tr:nth-child(even) td { background: #d4d8e0; }
       .sheet-table tr:hover td { background: #dde4f0; }
+      .sheet-table tr.row-dup td { background: #f5c6c6 !important; }
+      .sheet-table tr.row-dup:hover td { background: #f0b0b0 !important; }
 
       .cell-input {
         width: 100%; background: transparent; border: none; outline: none;
@@ -379,6 +381,7 @@
               <div class="sheet-toolbar">
                 <div class="sheet-toolbar-left">
                   <span class="parsed-count" id="parsedCount"></span>
+                  <span id="dupWarning" style="display:none; font-size:0.75rem; font-weight:bold; color:#ffaaaa;"></span>
                   <span class="sheet-note"
                     >Edit any cells before downloading</span
                   >
@@ -393,7 +396,7 @@
                     <th style="width: 110px">Number</th>
                     <th>Sheet Name</th>
                     <th style="width: 130px">Discipline</th>
-                    <th style="width: 90px">Order Major</th>
+                    <th style="width: 90px; cursor: pointer; user-select: none;" id="sortMajorBtn" title="Sort by Order Major">Order Major &#x25B5;</th>
                     <th style="width: 90px">Order Minor</th>
                     <th style="width: 32px"></th>
                   </tr>
@@ -554,7 +557,7 @@
         pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
 
         await renderPreview();
-        setStatus('Draw a Sheet Number region and a Sheet Title region, then click Re-parse.', 'active');
+        setStatus('Draw a Sheet Number region and a Sheet Title region, then click Get List.', 'active');
       }
 
       // ── Render page 1 preview ────────────────────────────────────────────────
@@ -865,6 +868,7 @@
         sheets.forEach((s) => addRow(s.number, s.title));
         parsedCount.textContent = sheetBody.rows.length + " sheets found";
         tableWrap.classList.add("visible");
+        checkDuplicates();
       }
 
       function addRow(num, title) {
@@ -884,6 +888,7 @@
           inputs[2].value = p2.discipline;
           inputs[3].value = p2.major;
           inputs[4].value = p2.minor;
+          checkDuplicates();
         });
         tr.querySelector(".row-del").addEventListener("click", () => {
           tr.remove();
@@ -895,6 +900,30 @@
 
       function updateCount() {
         parsedCount.textContent = sheetBody.rows.length + " sheets";
+        checkDuplicates();
+      }
+
+      const dupWarning = document.getElementById('dupWarning');
+      function checkDuplicates() {
+        const rows = Array.from(sheetBody.rows);
+        const counts = {};
+        rows.forEach(tr => {
+          const val = tr.querySelectorAll('input')[0].value.trim().toUpperCase();
+          if (val) counts[val] = (counts[val] || 0) + 1;
+        });
+        const dupNums = Object.entries(counts).filter(([, c]) => c > 1).map(([n]) => n);
+        const dupSet = new Set(dupNums);
+        rows.forEach(tr => {
+          const val = tr.querySelectorAll('input')[0].value.trim().toUpperCase();
+          tr.classList.toggle('row-dup', dupSet.has(val));
+        });
+        if (dupNums.length) {
+          dupWarning.textContent = 'Duplicate numbers: ' + dupNums.join(', ');
+          dupWarning.style.display = '';
+        } else {
+          dupWarning.textContent = '';
+          dupWarning.style.display = 'none';
+        }
       }
 
       function esc(s) {
@@ -908,6 +937,21 @@
         toolStatus.textContent = msg;
         toolStatus.className = "tool-status" + (type ? " " + type : "");
       }
+
+      let sortMajorDir = 1;
+      document.getElementById('sortMajorBtn').addEventListener('click', () => {
+        const rows = Array.from(sheetBody.rows);
+        rows.sort((a, b) => {
+          const av = parseInt(a.querySelectorAll('input')[3].value) || 0;
+          const bv = parseInt(b.querySelectorAll('input')[3].value) || 0;
+          return (av - bv) * sortMajorDir;
+        });
+        sortMajorDir *= -1;
+        document.getElementById('sortMajorBtn').textContent =
+          'Order Major ' + (sortMajorDir === 1 ? '\u25B5' : '\u25BF');
+        rows.forEach(tr => sheetBody.appendChild(tr));
+        checkDuplicates();
+      });
 
       addRowBtn.addEventListener("click", () => {
         addRow("", "");
