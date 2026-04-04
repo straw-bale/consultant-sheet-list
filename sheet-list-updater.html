@@ -168,7 +168,8 @@
       #pageCanvas { display: block; }
       .refine-wrap {
         display: none; position: relative;
-        overflow-x: auto; background: #c8c8c8;
+        overflow: auto; max-height: 75vh; background: #c8c8c8;
+        cursor: grab;
       }
       .refine-wrap.visible { display: block; }
       #overlayCanvas { position: absolute; top: 0; left: 0; cursor: default; }
@@ -298,7 +299,7 @@
         </div>
         <div class="corp-nav">
           <a href="../index.html">&#8592; Portal Home</a>
-          <a href="#">Help</a>
+          <a href="#" id="helpBtn">Help</a>
         </div>
       </div>
     </div>
@@ -368,7 +369,7 @@
                   <button class="btn btn-region-num" id="numRegionBtn">Sheet Number region</button>
                   <button class="btn btn-region-title" id="titleRegionBtn">Sheet Title region</button>
                   <button class="btn" id="clearRegionsBtn">Clear</button>
-                  <button class="btn btn-primary" id="reparseBtn">Re-parse</button>
+                  <button class="btn btn-primary" id="reparseBtn">Get List</button>
                 </div>
               </div>
             </div>
@@ -434,6 +435,18 @@
       For technical support, contact the IS Department &bull; Extension 4400
       &bull; Unauthorized use prohibited
     </div>
+
+    <div id="gehryPanel" style="display: none; text-align: center; padding: 20px 0 30px;">
+      <img src="gehry-at-home.jpg" style="width: 25%; display: inline-block;" alt="Gehry at Home" />
+    </div>
+
+    <script>
+      document.getElementById('helpBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const panel = document.getElementById('gehryPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      });
+    </script>
 
     <script type="module">
       import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs";
@@ -552,8 +565,10 @@
       const zoomOutBtn    = document.getElementById('zoomOutBtn');
 
       async function renderPreview(scale = null, pageNum = currentPage) {
+        previewWrap.classList.add('visible');
+        refineWrap.classList.add('visible');
         const page = await pdfDoc.getPage(pageNum);
-        const containerWidth = refineWrap.parentElement.clientWidth - 24 || 1200;
+        const containerWidth = refineWrap.clientWidth || 1200;
         const baseScale = containerWidth / page.getViewport({ scale: 1 }).width;
         if (scale === null) scale = baseScale;
         zoomScale   = scale;
@@ -569,8 +584,6 @@
 
         await page.render({ canvasContext: pageCanvas.getContext('2d'), viewport: pageVP }).promise;
         drawRegions();
-        previewWrap.classList.add('visible');
-        refineWrap.classList.add('visible');
         pageIndicator.textContent = pageNum + ' / ' + pdfDoc.numPages;
         prevPageBtn.disabled = pageNum <= 1;
         nextPageBtn.disabled = pageNum >= pdfDoc.numPages;
@@ -582,14 +595,15 @@
       zoomOutBtn.addEventListener('click',  () => pdfDoc && renderPreview(Math.max(zoomScale * 0.8, 0.3)));
 
       refineWrap.addEventListener('wheel', e => {
-        if (!pdfDoc) return;
+        if (!pdfDoc || !e.ctrlKey) return;
         e.preventDefault();
         renderPreview(e.deltaY < 0 ? zoomScale * 1.1 : Math.max(zoomScale * 0.9, 0.3));
       }, { passive: false });
 
       // ── Client-side extraction via PDF.js ───────────────────────────────────
       async function extractClientSide(doc) {
-        const sheets = [], seen = new Set();
+        const sheets = [];
+        const numCounts = {};
         for (let p = 1; p <= doc.numPages; p++) {
           const page    = await doc.getPage(p);
           const vp      = page.getViewport({ scale: 1 });
@@ -616,11 +630,11 @@
               for (const it of items) {
                 if (it.x < rx0 || it.x > rx1 || it.y < ry0 || it.y > ry1) continue;
                 const m = SHEET_RE_JS.exec(it.str);
-                if (m && !seen.has(m[0])) { num = m[0]; break outer; }
+                if (m) { num = m[0]; break outer; }
               }
             }
           }
-          if (!num || seen.has(num)) continue;
+          if (!num) continue;
           if (titleRegion) {
             const inReg = items
               .filter(it => it.x >= titleRegion.x0 && it.x <= titleRegion.x1 &&
@@ -646,10 +660,13 @@
               title = candidates.map(it => it.str).join(' ').trim();
             }
           }
-          seen.add(num);
           sheets.push({ number: num, title });
+          numCounts[num] = (numCounts[num] || 0) + 1;
         }
-        return sheets;
+        const duplicates = Object.entries(numCounts)
+          .filter(([, c]) => c > 1)
+          .map(([n]) => n);
+        return { sheets, duplicates };
       }
 
       // ── Region buttons ────────────────────────────────────────────────────────
@@ -674,14 +691,22 @@
         setActiveMode(null);
         setStatus('Extracting ' + pdfDoc.numPages + ' pages…', 'active');
         tableWrap.classList.remove('visible');
-        const sheets = await extractClientSide(pdfDoc);
+        const { sheets, duplicates } = await extractClientSide(pdfDoc);
         if (!sheets.length) { setStatus('No sheets found.', 'error'); return; }
         const total = pdfDoc.numPages;
+        let statusMsg, statusType;
         if (sheets.length !== total) {
-          setStatus(sheets.length + ' sheets extracted — WARNING: expected ' + total + ' (one per page). Check regions.', 'error');
+          statusMsg = sheets.length + ' sheets extracted — WARNING: expected ' + total + ' (one per page). Check regions.';
+          statusType = 'error';
         } else {
-          setStatus(sheets.length + ' sheets extracted — all ' + total + ' pages matched.', 'success');
+          statusMsg = sheets.length + ' sheets extracted — all ' + total + ' pages matched.';
+          statusType = 'success';
         }
+        if (duplicates.length) {
+          statusMsg += ' DUPLICATE numbers detected: ' + duplicates.join(', ') + '.';
+          statusType = 'error';
+        }
+        setStatus(statusMsg, statusType);
         renderTable(sheets);
       });
 
@@ -689,7 +714,7 @@
         activeMode = mode;
         numRegionBtn.classList.toggle("active", mode === "num");
         titleRegionBtn.classList.toggle("active", mode === "title");
-        overlayCanvas.style.cursor = mode ? "crosshair" : "default";
+        overlayCanvas.style.cursor = mode ? "crosshair" : "grab";
         updateHint();
       }
 
@@ -768,11 +793,15 @@
         ctx.fillText(label, x + 5, y + 14);
       }
 
-      // Drag-to-crop on overlay canvas
+      // Drag-to-crop on overlay canvas (or pan when no mode active)
       (() => {
         let dragging = false,
           sx = 0,
-          sy = 0;
+          sy = 0,
+          panStartX = 0,
+          panStartY = 0,
+          panScrollLeft = 0,
+          panScrollTop = 0;
 
         function canvasXY(e) {
           const scaleX = overlayCanvas.width / overlayCanvas.offsetWidth;
@@ -781,34 +810,53 @@
         }
 
         overlayCanvas.addEventListener("mousedown", (e) => {
-          if (!activeMode) return;
-          ({ x: sx, y: sy } = canvasXY(e));
           dragging = true;
+          if (activeMode) {
+            ({ x: sx, y: sy } = canvasXY(e));
+          } else {
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            panScrollLeft = refineWrap.scrollLeft;
+            panScrollTop  = refineWrap.scrollTop;
+            overlayCanvas.style.cursor = 'grabbing';
+          }
         });
 
         overlayCanvas.addEventListener("mousemove", (e) => {
           if (!dragging) return;
-          const { x: ex, y: ey } = canvasXY(e);
-          drawRegions({ sx, sy, ex, ey });
+          if (activeMode) {
+            const { x: ex, y: ey } = canvasXY(e);
+            drawRegions({ sx, sy, ex, ey });
+          } else {
+            refineWrap.scrollLeft = panScrollLeft - (e.clientX - panStartX);
+            refineWrap.scrollTop  = panScrollTop  - (e.clientY - panStartY);
+          }
         });
 
-        overlayCanvas.addEventListener("mouseup", (e) => {
+        function endDrag(e) {
           if (!dragging) return;
           dragging = false;
-          const { x: ex, y: ey } = canvasXY(e);
-          const pw = overlayCanvas.width,
-            ph = overlayCanvas.height;
-          const rect = {
-            x0: Math.min(sx, ex) / pw,
-            y0: Math.min(sy, ey) / ph,
-            x1: Math.max(sx, ex) / pw,
-            y1: Math.max(sy, ey) / ph,
-          };
-          if (activeMode === "num") numRegion = rect;
-          else titleRegion = rect;
-          drawRegions();
-          updateHint();
-        });
+          if (activeMode) {
+            const { x: ex, y: ey } = canvasXY(e);
+            const pw = overlayCanvas.width,
+              ph = overlayCanvas.height;
+            const rect = {
+              x0: Math.min(sx, ex) / pw,
+              y0: Math.min(sy, ey) / ph,
+              x1: Math.max(sx, ex) / pw,
+              y1: Math.max(sy, ey) / ph,
+            };
+            if (activeMode === "num") numRegion = rect;
+            else titleRegion = rect;
+            drawRegions();
+            updateHint();
+          } else {
+            overlayCanvas.style.cursor = 'grab';
+          }
+        }
+
+        overlayCanvas.addEventListener("mouseup", endDrag);
+        overlayCanvas.addEventListener("mouseleave", endDrag);
       })();
 
       // ── Table ─────────────────────────────────────────────────────────────────
