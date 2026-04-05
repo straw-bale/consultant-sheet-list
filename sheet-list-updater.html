@@ -251,6 +251,11 @@
       .btn-region-title { color: var(--blue); }
       .btn-region-title.active { background: var(--blue); color: #fff; border-color: var(--blue); }
 
+      .btn:disabled, .btn[disabled] {
+        opacity: 0.35; cursor: not-allowed;
+        pointer-events: none;
+      }
+
       /* ── Table ── */
       .sheet-table-wrap { display: none; flex-direction: column; }
       .sheet-table-wrap.visible { display: flex; }
@@ -346,6 +351,18 @@
         font-size: 0.73rem;
         color: var(--blue);
       }
+      .copy-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: none; border: 1px solid var(--border-hi);
+        border-radius: var(--radius);
+        color: var(--muted); font-family: 'Chivo Mono', monospace;
+        font-size: 0.65rem; padding: 1px 7px;
+        cursor: pointer; vertical-align: middle;
+        margin-left: 6px;
+        transition: color 0.15s, border-color 0.15s;
+      }
+      .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+      .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
       /* ── Download block ── */
       .download-block {
@@ -494,7 +511,7 @@
                   <button class="btn btn-region-num" id="numRegionBtn">Sheet Number region</button>
                   <button class="btn btn-region-title" id="titleRegionBtn">Sheet Title region</button>
                   <button class="btn" id="clearRegionsBtn">Clear</button>
-                  <button class="btn btn-primary" id="reparseBtn">Get List</button>
+                  <button class="btn btn-primary" id="reparseBtn" disabled>Get List</button>
                 </div>
               </div>
             </div>
@@ -557,34 +574,38 @@
         <section>
           <p class="section-label">PyRevit Plugin &mdash; Import to Revit</p>
           <div class="info-note" style="margin-bottom: 10px;">
-            The PyRevit button reads a CSV from this tool and creates or updates sheets
-            directly in your Revit model. It can also open this page automatically and
-            pull the sheet list from your clipboard after you click
-            <em>Download &amp; Copy CSV</em>.<br /><br />
+            Once installed, this PyRevit button lets you import sheets directly into your Revit model from a CSV.
+            Run it from Revit and it will open this page automatically, wait for you to generate and copy your sheet list,
+            then create or update the sheets in your model in one step.<br /><br />
 
-            <strong>Installation</strong><br />
-            1. Download <code>script.py</code> using the button below.<br />
-            2. In File Explorer, navigate to your PyRevit extensions folder:<br />
-            &nbsp;&nbsp;&nbsp;<code>%APPDATA%\pyRevit\Extensions</code><br />
-            3. Create (or locate) this exact folder path inside it:<br />
-            &nbsp;&nbsp;&nbsp;<code>ARTools.extension\pyRevit.tab\studioOS.panel\ImportConsultantSheetList.pushbutton\</code><br />
-            4. Place the downloaded <code>script.py</code> inside that folder.<br />
-            5. In Revit, go to the <em>pyRevit</em> tab and click <strong>Reload</strong>.<br />
-            6. The <strong>Import Consultant Sheet List</strong> button will appear in the
-            <em>studioOS</em> panel.<br /><br />
+            <strong>What you need</strong><br />
+            PyRevit must already be installed. If you don't have it, download it at
+            <em>pyrevitlabs.io</em> and follow their setup guide before continuing.<br /><br />
 
-            <strong>Required Revit parameters</strong> — the script sets three custom sheet
-            parameters if they exist: <code>DISCIPLINE</code>, <code>ORDER-MAJOR</code>,
-            <code>ORDER-MINOR</code>. These are optional; sheets are still created without them.
+            <strong>How to install</strong><br />
+            1. Click <em>Download Plugin</em> below to get the zip file.<br />
+            2. Open File Explorer and paste this path into the address bar:<br />
+            &nbsp;&nbsp;&nbsp;<code>%APPDATA%\pyRevit\Extensions</code><button class="copy-btn" data-copy="%APPDATA%\pyRevit\Extensions">&#10697; copy</button><br />
+            &nbsp;&nbsp;&nbsp;This opens your PyRevit extensions folder.<br />
+            3. Extract the zip into that folder. It will create a folder called
+            <code>ARTools.extension</code> with the button inside it. If
+            <code>ARTools.extension</code> already exists there, just merge — don't replace.<br />
+            4. Open Revit, go to the <strong>pyRevit</strong> tab in the ribbon, and click <strong>Reload</strong>.<br />
+            5. A new <strong>studioOS</strong> panel will appear with the <em>Import Consultant Sheet List</em> button.<br /><br />
+
+            <strong>Custom sheet parameters</strong><br />
+            The script will also populate <code>DISCIPLINE</code>, <code>ORDER-MAJOR</code>, and
+            <code>ORDER-MINOR</code> on each sheet if those parameters exist in your model.
+            These are optional — sheets will still be created if the parameters aren't present.
           </div>
           <div class="download-block">
             <div class="download-block-text">
-              <strong>ImportConsultantSheetList / script.py</strong><br />
-              PyRevit pushbutton script &mdash; place inside the
-              <code>ImportConsultantSheetList.pushbutton\</code> folder in your extensions directory.
+              <strong>ImportConsultantSheetList.zip</strong><br />
+              Full PyRevit extension folder structure — extract directly into
+              <code>%APPDATA%\pyRevit\Extensions\</code>
             </div>
-            <a class="btn-download" href="/downloads/script.py" download="script.py">
-              &#8659; Download script.py
+            <a class="btn-download" href="/downloads/ImportConsultantSheetList.zip" download="ImportConsultantSheetList.zip">
+              &#8659; Download Plugin
             </a>
           </div>
         </section>
@@ -619,6 +640,17 @@
     </div>
 
     <script>
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+            const orig = btn.innerHTML;
+            btn.textContent = '✓ copied';
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1800);
+          });
+        });
+      });
+
       const gehryPanel = document.getElementById('gehryPanel');
       document.getElementById('helpBtn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -869,6 +901,7 @@
         titleRegion = null;
         drawRegions();
         updateHint();
+        syncReparseBtn();
       });
 
       reparseBtn.addEventListener('click', async () => {
@@ -903,6 +936,10 @@
         titleRegionBtn.classList.toggle("active", mode === "title");
         overlayCanvas.style.cursor = mode ? "crosshair" : "grab";
         updateHint();
+      }
+
+      function syncReparseBtn() {
+        reparseBtn.disabled = !(numRegion && titleRegion);
       }
 
       function updateHint() {
@@ -1037,6 +1074,7 @@
             else titleRegion = rect;
             drawRegions();
             updateHint();
+            syncReparseBtn();
           } else {
             overlayCanvas.style.cursor = 'grab';
           }
@@ -1062,8 +1100,8 @@
         <td><input class="cell-input" value="${esc(num)}" placeholder="E-101"></td>
         <td><input class="cell-input" value="${esc(title)}" placeholder="Sheet title"></td>
         <td><input class="cell-input" value="${esc(p.discipline)}" readonly></td>
-        <td><input class="cell-input" value="${p.major}" readonly></td>
-        <td><input class="cell-input" value="${p.minor}" readonly></td>
+        <td><input class="cell-input" value="${p.major}"></td>
+        <td><input class="cell-input" value="${p.minor}"></td>
         <td class="row-del" title="Remove row">×</td>`;
         // Re-resolve discipline when sheet number is edited
         tr.querySelector("input").addEventListener("change", function () {
@@ -1156,6 +1194,7 @@
         numRegionBtn.classList.remove("active");
         titleRegionBtn.classList.remove("active");
         refineHint.textContent = "";
+        syncReparseBtn();
         overlayCanvas
           .getContext("2d")
           .clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
