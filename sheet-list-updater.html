@@ -3,319 +3,442 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sheet List &mdash; Drawing Sheet Management System v2.1</title>
+    <title>Sheet List — Studio OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Chivo+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
     <style>
-      /* ===== CURVE CLASSIC ===== */
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+      /* ===== STONE & STEEL — Studio OS ===== */
+      :root {
+        --bg:         #111009;
+        --surface:    #1a1914;
+        --surface2:   #21201a;
+        --border:     #2c2b22;
+        --border-hi:  #3d3b2e;
+        --text:       #e2dcd0;
+        --muted:      #76726a;
+        --accent:     #c4692a;
+        --accent-dim: rgba(196, 105, 42, 0.12);
+        --blue:       #4a8fc4;
+        --blue-dim:   rgba(74, 143, 196, 0.1);
+        --green:      #3d9e60;
+        --red:        #b84040;
+        --radius:     2px;
       }
-      /* ── Curve palette ──
-         page bg:      #9191b8
-         panel blue:   #4f6898
-         panel border: #ffffff 2px + shadow offset
-         card bg:      #c8c8c8
-         font:         "Courier New" monospace
-         btn green:    #1a9a1a
-         green text:   #22aa00
-         blue text:    #3355cc
-      ── */
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
 
       body {
-        background: #9191b8;
-        font-family: "Courier New", Courier, monospace;
+        background-color: var(--bg);
+        font-family: 'Chivo Mono', 'Courier New', monospace;
         font-size: 13px;
-        color: #000000;
+        color: var(--text);
         min-height: 100vh;
       }
 
-      /* ── Nav banner ── */
+      /* ── Nav ── */
       .corp-banner {
-        background: #c8c8c8;
-        border-bottom: 1px solid #888888;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
       .corp-banner-inner {
+        max-width: 1000px;
+        margin: 0 auto;
         display: flex;
-        align-items: stretch;
+        align-items: center;
+        padding: 0 28px;
+        height: 46px;
+        gap: 20px;
       }
       .corp-logo {
-        background: #1a9a1a;
-        color: #ffffff;
-        font-weight: bold;
-        padding: 5px 14px;
-        font-size: 0.85rem;
+        font-family: 'Josefin Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.18em;
+        color: var(--text);
+        text-transform: uppercase;
         white-space: nowrap;
       }
-      .corp-logo span { color: #ffffff; }
-      .corp-marquee-wrap {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        padding: 0 12px;
-      }
-      .corp-marquee-wrap marquee {
-        color: #444444;
-        font-size: 0.75rem;
-      }
-      .corp-nav {
-        display: flex;
-        align-items: stretch;
-      }
+      .corp-logo span { color: var(--accent); }
+      .corp-marquee-wrap { flex: 1; }
+      .corp-marquee-wrap marquee { display: none; }
+      .corp-nav { display: flex; align-items: center; gap: 2px; }
       .corp-nav a {
-        color: #000000;
+        color: var(--muted);
         text-decoration: none;
-        font-size: 0.8rem;
-        padding: 5px 14px;
-        display: flex;
-        align-items: center;
-        border-left: 1px solid #aaaaaa;
+        font-size: 0.7rem;
+        padding: 7px 14px;
+        letter-spacing: 0.06em;
+        border-radius: var(--radius);
+        transition: color 0.15s, background 0.15s;
       }
-      .corp-nav a:hover { background: #b8b8b8; }
-      .corp-nav a.active { background: #4455cc; color: #ffffff; }
+      .corp-nav a:hover { color: var(--text); background: var(--surface2); }
+      .corp-nav a.active { color: var(--accent); }
 
       /* ── Header ── */
       header {
-        background: #4f6898;
-        border: 2px solid #ffffff;
-        border-left: none;
-        border-right: none;
-        padding: 10px 16px 8px;
-        box-shadow: 3px 3px 0 #00000040;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 44px 28px 36px;
+        animation: fadeUp 0.5s ease both;
       }
+      .header-inner { max-width: 1000px; margin: 0 auto; }
       .back-link { display: none; }
       .page-title-row {
         display: flex;
-        align-items: flex-end;
+        align-items: baseline;
         justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
       }
       header h1 {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #ffffff;
-        letter-spacing: 0.03em;
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--text);
+        text-transform: uppercase;
+        line-height: 1;
       }
-      .version-badge { font-size: 0.7rem; color: #c0d0f0; }
-      header .subtitle { font-size: 0.78rem; color: #c0d0f0; margin-top: 2px; }
+      .version-badge {
+        font-size: 0.62rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        white-space: nowrap;
+      }
+      header .subtitle {
+        font-size: 0.76rem;
+        color: var(--muted);
+        margin-top: 12px;
+        line-height: 1.7;
+        max-width: 560px;
+      }
 
       /* ── Layout ── */
-      main { padding: 14px 16px; margin: 0 auto; }
-      .content-wrap { display: flex; flex-direction: column; gap: 14px; }
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 36px 28px 72px;
+      }
+      .content-wrap { display: flex; flex-direction: column; gap: 28px; }
 
       /* ── Panel ── */
       .tool-box {
-        background: #4f6898;
-        border: 2px solid #ffffff;
-        box-shadow: 4px 4px 0 #00000050;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
       }
       .panel-titlebar {
-        background: #4f6898;
-        color: #ffffff;
-        font-size: 0.75rem;
-        font-weight: bold;
-        padding: 4px 10px;
-        letter-spacing: 0.04em;
+        background: var(--surface2);
+        border-bottom: 1px solid var(--border);
+        padding: 11px 18px;
+        font-size: 0.67rem;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #7090b8;
       }
-      .panel-titlebar-btns { display: flex; gap: 2px; }
-      .titlebar-btn {
-        width: 14px; height: 12px;
-        background: #c8c8c8;
-        border: 1px solid #888888;
-        font-size: 9px; line-height: 10px;
-        text-align: center; color: #000; cursor: default;
-      }
+      .panel-titlebar-btns { display: none; }
 
       /* ── Drop zone ── */
       .drop-zone {
-        border: 2px dashed #a0b0c8;
-        background: #c8c8c8;
-        margin: 10px;
-        padding: 28px 16px;
+        border: 1px dashed var(--border-hi);
+        background: transparent;
+        margin: 18px;
+        padding: 52px 24px;
         text-align: center;
         cursor: pointer;
+        border-radius: var(--radius);
+        transition: border-color 0.2s, background 0.2s;
       }
       .drop-zone:hover, .drop-zone.drag-over {
-        background: #d8e0f0;
-        border-color: #ffffff;
+        border-color: var(--accent);
+        background: var(--accent-dim);
       }
-      .drop-zone-label { font-size: 0.85rem; color: #000000; }
-      .drop-zone-label strong { color: #1a9a1a; cursor: pointer; text-decoration: underline; }
-      .drop-zone-sub { font-size: 0.72rem; color: #555555; margin-top: 4px; }
+      .drop-zone-label { font-size: 0.88rem; color: var(--text); }
+      .drop-zone-label strong {
+        color: var(--accent);
+        cursor: pointer;
+        border-bottom: 1px solid currentColor;
+        font-weight: 400;
+      }
+      .drop-zone-sub { font-size: 0.68rem; color: var(--muted); margin-top: 8px; letter-spacing: 0.04em; }
 
       /* ── Status ── */
-      .tool-status { padding: 4px 10px 6px; font-size: 0.78rem; color: #000000; min-height: 22px; background: #c8c8c8; }
-      .tool-status.active { color: #555555; }
-      .tool-status.error  { color: #cc0000; font-weight: bold; }
-      .tool-status.success { color: #1a9a1a; font-weight: bold; }
+      .tool-status {
+        padding: 9px 18px;
+        font-size: 0.72rem;
+        color: var(--muted);
+        min-height: 30px;
+        border-top: 1px solid var(--border);
+        letter-spacing: 0.02em;
+      }
+      .tool-status.error   { color: var(--red); }
+      .tool-status.success { color: var(--green); }
 
       /* ── Preview ── */
       .preview-wrap { display: none; }
       .preview-wrap.visible { display: block; }
       .preview-header {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 5px 10px;
-        background: #3d5580;
-        border-top: 1px solid #7090b8;
-        border-bottom: 1px solid #2a3f60;
+        padding: 9px 18px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
       }
-      .preview-label { font-size: 0.75rem; color: #c0d4f0; letter-spacing: 0.03em; }
-      .region-tools { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+      .preview-label {
+        font-size: 0.68rem; color: var(--muted);
+        letter-spacing: 0.08em; text-transform: uppercase;
+      }
+      .region-tools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
       #pageCanvas { display: block; }
       .refine-wrap {
         display: none; position: relative;
-        overflow: auto; max-height: 75vh; background: #c8c8c8;
+        overflow: auto; max-height: 75vh;
+        background: #08070a;
         cursor: grab;
       }
       .refine-wrap.visible { display: block; }
       #overlayCanvas { position: absolute; top: 0; left: 0; cursor: default; }
 
-      .refine-hint { font-size: 0.75rem; color: #000000; flex: 1; min-height: 20px; }
+      .refine-hint { font-size: 0.7rem; color: var(--muted); flex: 1; min-height: 20px; }
       .region-footer {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 7px 10px;
-        background: #c8c8c8;
-        border-top: 1px solid #aaaaaa;
-        flex-wrap: wrap; gap: 6px;
+        padding: 11px 18px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        flex-wrap: wrap; gap: 8px;
       }
 
       /* ── Buttons ── */
       .btn {
-        font-family: "Courier New", Courier, monospace;
-        font-size: 0.75rem;
-        padding: 3px 12px;
-        background: #c8c8c8;
-        border: 1px solid #888888;
-        color: #000000;
+        font-family: 'Chivo Mono', 'Courier New', monospace;
+        font-size: 0.7rem;
+        padding: 7px 16px;
+        background: var(--surface2);
+        border: 1px solid var(--border-hi);
+        color: var(--text);
         cursor: pointer;
+        border-radius: var(--radius);
+        letter-spacing: 0.04em;
+        transition: border-color 0.15s, background 0.15s, color 0.15s;
       }
-      .btn:hover { background: #b8b8b8; }
-      .btn:active { background: #a8a8a8; }
+      .btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+      .btn:active { opacity: 0.75; }
 
       .btn-primary {
-        background: #1a9a1a;
-        color: #ffffff;
-        border-color: #118811;
-        font-weight: bold;
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        font-weight: 500;
       }
-      .btn-primary:hover { background: #22aa22; }
+      .btn-primary:hover { background: #d4792a; border-color: #d4792a; }
 
-      .btn-add { color: #1a9a1a; font-weight: bold; }
+      .btn-add { color: var(--green); }
+      .btn-add:hover { border-color: var(--green); background: rgba(61, 158, 96, 0.1); }
 
-      .btn-region-num { color: #cc5500; }
-      .btn-region-num.active { background: #cc5500; color: #ffffff; border-color: #993300; }
+      .btn-region-num { color: #c47830; }
+      .btn-region-num.active { background: #c47830; color: #fff; border-color: #c47830; }
 
-      .btn-region-title { color: #3355cc; }
-      .btn-region-title.active { background: #3355cc; color: #ffffff; border-color: #2244aa; }
+      .btn-region-title { color: var(--blue); }
+      .btn-region-title.active { background: var(--blue); color: #fff; border-color: var(--blue); }
 
       /* ── Table ── */
       .sheet-table-wrap { display: none; flex-direction: column; }
       .sheet-table-wrap.visible { display: flex; }
       .sheet-toolbar {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 5px 10px;
-        background: #3d5580;
-        border-top: 1px solid #2a3f60;
-        border-bottom: 1px solid #2a3f60;
+        padding: 9px 18px;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
       }
-      .sheet-toolbar-left { display: flex; align-items: center; gap: 10px; }
-      .parsed-count { font-size: 0.78rem; color: #ffffff; font-weight: bold; }
-      .sheet-note { font-size: 0.72rem; color: #a0b8d8; }
+      .sheet-toolbar-left { display: flex; align-items: center; gap: 14px; }
+      .parsed-count { font-size: 0.72rem; color: var(--accent); font-weight: 500; }
+      .sheet-note { font-size: 0.66rem; color: var(--muted); }
 
       .sheet-table { width: 100%; border-collapse: collapse; }
       .sheet-table th {
-        text-align: left; font-size: 0.72rem;
-        color: #ffffff; padding: 4px 10px;
-        background: #3d5580;
-        border-right: 1px solid #2a3f60;
-        border-bottom: 2px solid #2a3f60;
+        text-align: left;
+        font-size: 0.64rem;
+        color: var(--muted);
+        padding: 9px 14px;
+        background: var(--surface2);
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 400;
       }
       .sheet-table td {
         padding: 0;
-        border-bottom: 1px solid #b0b8c8;
-        border-right: 1px solid #b0b8c8;
+        border-bottom: 1px solid var(--border);
+        border-right: 1px solid var(--border);
         vertical-align: middle;
-        background: #c8c8c8;
+        background: var(--surface);
       }
-      .sheet-table tr:nth-child(even) td { background: #d4d8e0; }
-      .sheet-table tr:hover td { background: #dde4f0; }
-      .sheet-table tr.row-dup td { background: #f5c6c6 !important; }
-      .sheet-table tr.row-dup:hover td { background: #f0b0b0 !important; }
+      .sheet-table tr:nth-child(even) td { background: #151410; }
+      .sheet-table tr:hover td { background: var(--surface2); }
+      .sheet-table tr.row-dup td { background: rgba(184, 64, 64, 0.1) !important; }
+      .sheet-table tr.row-dup:hover td { background: rgba(184, 64, 64, 0.16) !important; }
 
       .cell-input {
         width: 100%; background: transparent; border: none; outline: none;
-        color: #000000; font-size: 0.78rem;
-        font-family: "Courier New", Courier, monospace;
-        padding: 4px 10px;
+        color: var(--text); font-size: 0.76rem;
+        font-family: 'Chivo Mono', 'Courier New', monospace;
+        padding: 8px 14px;
+        transition: background 0.1s;
       }
-      .cell-input:focus { background: #e8f0ff; }
-      .cell-input[readonly] { color: #555555; }
+      .cell-input:focus { background: var(--blue-dim); }
+      .cell-input[readonly] { color: var(--muted); }
 
-      .row-del { width: 24px; text-align: center; cursor: pointer; color: #888888; font-size: 0.9rem; }
-      .row-del:hover { color: #cc0000; background: #e8c8c8; }
+      .row-del {
+        width: 30px; text-align: center; cursor: pointer;
+        color: var(--border-hi); font-size: 0.85rem;
+        transition: color 0.15s;
+      }
+      .row-del:hover { color: var(--red); }
 
       .sheet-footer {
-        padding: 7px 10px; display: flex; justify-content: flex-end; gap: 6px;
-        background: #c8c8c8; border-top: 1px solid #aaaaaa;
+        padding: 11px 18px; display: flex; justify-content: flex-end; gap: 8px;
+        background: var(--surface2); border-top: 1px solid var(--border);
       }
 
-      /* ── Info ── */
+      /* ── Info sections ── */
       .section-label {
-        font-size: 0.72rem; font-weight: bold; color: #ffffff;
-        letter-spacing: 0.06em; margin-bottom: 6px;
-        border-bottom: 1px solid #7090b8; padding-bottom: 3px;
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 12px;
       }
       .info-note {
-        background: #c8c8c8;
-        border: 1px solid #aaaaaa;
-        padding: 10px 12px; color: #000000;
-        font-size: 0.78rem; line-height: 1.6;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px 26px;
+        color: var(--text);
+        font-size: 0.77rem;
+        line-height: 1.85;
       }
-      .info-note strong { color: #1a9a1a; }
+      .info-note strong { color: var(--accent); font-weight: 500; }
+      .info-note em {
+        font-style: normal;
+        border-bottom: 1px dashed var(--border-hi);
+        color: var(--text);
+      }
+      .info-note code {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2px 7px;
+        font-family: 'Chivo Mono', monospace;
+        font-size: 0.73rem;
+        color: var(--blue);
+      }
+
+      /* ── Download block ── */
+      .download-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .download-block-text {
+        flex: 1; min-width: 200px;
+        font-size: 0.76rem; line-height: 1.7;
+        color: var(--muted);
+      }
+      .download-block-text strong { color: var(--text); font-weight: 500; }
+      .download-block-text code {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2px 7px;
+        font-family: 'Chivo Mono', monospace;
+        font-size: 0.73rem;
+        color: var(--blue);
+      }
+      .btn-download {
+        font-family: 'Chivo Mono', 'Courier New', monospace;
+        font-size: 0.74rem;
+        font-weight: 500;
+        padding: 11px 22px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        cursor: pointer;
+        white-space: nowrap;
+        text-decoration: none;
+        display: inline-block;
+        letter-spacing: 0.05em;
+        transition: background 0.15s;
+      }
+      .btn-download:hover { background: #d4792a; }
 
       /* ── Footer ── */
       .corp-footer {
-        text-align: center; margin-top: 10px;
-        font-size: 0.65rem; color: #c0c8e0; padding-top: 6px;
+        text-align: center;
+        padding: 28px;
+        font-size: 0.62rem;
+        color: var(--border-hi);
+        letter-spacing: 0.08em;
+        border-top: 1px solid var(--border);
+        max-width: 1000px;
+        margin: 0 auto;
       }
+
+      /* ── Load animations ── */
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      header { animation: fadeUp 0.45s ease both; }
+      main > .content-wrap > section:nth-child(1) { animation: fadeUp 0.45s 0.08s ease both; }
+      main > .content-wrap > section:nth-child(2) { animation: fadeUp 0.45s 0.16s ease both; }
+      main > .content-wrap > section:nth-child(3) { animation: fadeUp 0.45s 0.24s ease both; }
     </style>
   </head>
   <body>
     <div class="corp-banner">
       <div class="corp-banner-inner">
-        <div class="corp-logo">
-          <span>ARCH</span> SOLUTIONS &mdash; DOCUMENT MANAGEMENT
-        </div>
-        <div class="corp-marquee-wrap">
-          <marquee behavior="scroll" scrollamount="2">
-            Drawing Sheet Management System v2.1 &nbsp;&bull;&nbsp; PyMuPDF
-            Extraction Engine &nbsp;&bull;&nbsp; For internal use only
-            &nbsp;&bull;&nbsp; &copy; 1999 Arch Solutions Inc. All rights
-            reserved &nbsp;&bull;&nbsp; Contact your system administrator for
-            support
-          </marquee>
-        </div>
+        <div class="corp-logo"><span>Studio OS</span> &mdash; Sheet Tools</div>
+        <div class="corp-marquee-wrap"></div>
         <div class="corp-nav">
-          <a href="../index.html">&#8592; Portal Home</a>
+          <a href="../index.html">&#8592; Portal</a>
           <a href="#" id="helpBtn">Help</a>
         </div>
       </div>
     </div>
 
     <header>
-      <a class="back-link" href="../index.html">Back</a>
-      <div class="page-title-row">
-        <h1>Drawing Sheet List Import</h1>
-        <span class="version-badge">Module v2.1.4 &mdash; Build 19991108</span>
+      <div class="header-inner">
+        <a class="back-link" href="../index.html">Back</a>
+        <div class="page-title-row">
+          <h1>Sheet List Import</h1>
+          <span class="version-badge">v2.1.4</span>
+        </div>
+        <p class="subtitle">
+          Drop a consultant PDF to extract and classify drawing sheet numbers and titles,
+          then import them directly into Revit via the PyRevit plugin.
+        </p>
       </div>
-      <p class="subtitle">
-        Upload a consultant PDF to extract and classify drawing sheet numbers
-        and titles for import into the project database.
-      </p>
     </header>
 
     <main>
@@ -429,25 +552,86 @@
             <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE · ORDER-MAJOR · ORDER-MINOR
           </div>
         </section>
+
+        <!-- ── PyRevit Plugin ── -->
+        <section>
+          <p class="section-label">PyRevit Plugin &mdash; Import to Revit</p>
+          <div class="info-note" style="margin-bottom: 10px;">
+            The PyRevit button reads a CSV from this tool and creates or updates sheets
+            directly in your Revit model. It can also open this page automatically and
+            pull the sheet list from your clipboard after you click
+            <em>Download &amp; Copy CSV</em>.<br /><br />
+
+            <strong>Installation</strong><br />
+            1. Download <code>script.py</code> using the button below.<br />
+            2. In File Explorer, navigate to your PyRevit extensions folder:<br />
+            &nbsp;&nbsp;&nbsp;<code>%APPDATA%\pyRevit\Extensions</code><br />
+            3. Create (or locate) this exact folder path inside it:<br />
+            &nbsp;&nbsp;&nbsp;<code>ARTools.extension\pyRevit.tab\studioOS.panel\ImportConsultantSheetList.pushbutton\</code><br />
+            4. Place the downloaded <code>script.py</code> inside that folder.<br />
+            5. In Revit, go to the <em>pyRevit</em> tab and click <strong>Reload</strong>.<br />
+            6. The <strong>Import Consultant Sheet List</strong> button will appear in the
+            <em>studioOS</em> panel.<br /><br />
+
+            <strong>Required Revit parameters</strong> — the script sets three custom sheet
+            parameters if they exist: <code>DISCIPLINE</code>, <code>ORDER-MAJOR</code>,
+            <code>ORDER-MINOR</code>. These are optional; sheets are still created without them.
+          </div>
+          <div class="download-block">
+            <div class="download-block-text">
+              <strong>ImportConsultantSheetList / script.py</strong><br />
+              PyRevit pushbutton script &mdash; place inside the
+              <code>ImportConsultantSheetList.pushbutton\</code> folder in your extensions directory.
+            </div>
+            <a class="btn-download" href="/downloads/script.py" download="script.py">
+              &#8659; Download script.py
+            </a>
+          </div>
+        </section>
       </div>
     </main>
 
     <div class="corp-footer">
-      Arch Solutions Inc. &mdash; Drawing Sheet Management System v2.1 &mdash;
-      &copy; 1999 All Rights Reserved<br />
-      For technical support, contact the IS Department &bull; Extension 4400
-      &bull; Unauthorized use prohibited
+      Studio OS &mdash; Sheet List Import v2.1 &mdash; Processed client-side, nothing is uploaded
     </div>
 
-    <div id="gehryPanel" style="display: none; text-align: center; padding: 20px 0 30px;">
-      <img src="gehry-at-home.jpg" style="width: 25%; display: inline-block;" alt="Gehry at Home" />
+    <div id="gehryPanel" style="
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.82);
+      align-items: center; justify-content: center;
+    ">
+      <div style="position: relative; display: inline-block;">
+        <img src="gehry-at-home.jpg" style="
+          max-width: 90vw; max-height: 88vh;
+          display: block; box-shadow: 0 8px 48px rgba(0,0,0,0.8);
+        " alt="Gehry at Home" />
+        <button id="gehryClose" style="
+          position: absolute; top: -14px; right: -14px;
+          width: 30px; height: 30px;
+          background: var(--surface2); border: 1px solid var(--border-hi);
+          color: var(--text); font-size: 1rem; line-height: 1;
+          cursor: pointer; border-radius: 50%;
+          font-family: 'Chivo Mono', monospace;
+          display: flex; align-items: center; justify-content: center;
+        ">&times;</button>
+      </div>
     </div>
 
     <script>
+      const gehryPanel = document.getElementById('gehryPanel');
       document.getElementById('helpBtn').addEventListener('click', function(e) {
         e.preventDefault();
-        const panel = document.getElementById('gehryPanel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        gehryPanel.style.display = 'flex';
+      });
+      document.getElementById('gehryClose').addEventListener('click', function() {
+        gehryPanel.style.display = 'none';
+      });
+      gehryPanel.addEventListener('click', function(e) {
+        if (e.target === gehryPanel) gehryPanel.style.display = 'none';
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') gehryPanel.style.display = 'none';
       });
     </script>
 
