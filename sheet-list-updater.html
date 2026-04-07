@@ -119,11 +119,113 @@
 
       /* ── Layout ── */
       main {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 36px 28px 72px;
       }
+      .page-grid {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+        align-items: start;
+      }
+      @media (max-width: 700px) {
+        .page-grid { grid-template-columns: 1fr; }
+      }
       .content-wrap { display: flex; flex-direction: column; gap: 28px; }
+
+      /* ── Sidebar ── */
+      .sidebar {
+        position: sticky;
+        top: 70px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .sidebar-title {
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .sidebar-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .sidebar-label {
+        flex: 1;
+        font-size: 0.69rem;
+        color: var(--muted);
+        padding: 6px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .sidebar-input {
+        width: 52px;
+        background: var(--surface2);
+        border: none;
+        border-left: 1px solid var(--border);
+        color: var(--accent);
+        font-family: 'Chivo Mono', monospace;
+        font-size: 0.72rem;
+        padding: 6px 8px;
+        text-align: right;
+        outline: none;
+      }
+      .sidebar-input:focus { background: var(--blue-dim); color: var(--text); }
+      .sidebar-hint {
+        font-size: 0.62rem;
+        color: var(--border-hi);
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+      .sidebar-prefix-input {
+        width: 44px;
+        background: var(--surface2);
+        border: none;
+        border-right: 1px solid var(--border);
+        color: var(--muted);
+        font-family: 'Chivo Mono', monospace;
+        font-size: 0.64rem;
+        padding: 6px 6px;
+        text-align: center;
+        outline: none;
+        flex-shrink: 0;
+        letter-spacing: 0.04em;
+      }
+      .sidebar-prefix-input::placeholder { color: var(--border-hi); }
+      .sidebar-prefix-input:focus { background: var(--blue-dim); color: var(--text); }
+      .sidebar-label-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-family: 'Chivo Mono', monospace;
+        font-size: 0.69rem;
+        padding: 6px 10px;
+        outline: none;
+        min-width: 0;
+      }
+      .sidebar-label-input::placeholder { color: var(--border-hi); }
+      .sidebar-label-input:focus { color: var(--text); }
+      .sidebar-row.has-error { border-color: var(--red); }
+      .sidebar-row.has-error .sidebar-input,
+      .sidebar-row.has-error .sidebar-label-input { color: var(--red); }
+      .sidebar-error {
+        font-size: 0.62rem;
+        color: var(--red);
+        line-height: 1.5;
+        min-height: 0;
+      }
 
       /* ── Panel ── */
       .tool-box {
@@ -255,6 +357,32 @@
         opacity: 0.35; cursor: not-allowed;
         pointer-events: none;
       }
+      .btn-primary:disabled, .btn-primary[disabled] {
+        background: var(--surface2);
+        border-color: var(--border);
+        color: var(--muted);
+      }
+      .extract-warning {
+        display: none;
+        background: rgba(184, 64, 64, 0.1);
+        border-bottom: 1px solid rgba(184, 64, 64, 0.3);
+        color: var(--red);
+        font-size: 0.73rem;
+        padding: 9px 18px;
+        letter-spacing: 0.01em;
+      }
+      .extract-warning.visible { display: block; }
+      .dup-error {
+        display: none;
+        background: rgba(184, 64, 64, 0.12);
+        border: 1px solid rgba(184, 64, 64, 0.4);
+        border-radius: var(--radius);
+        color: var(--red);
+        font-size: 0.72rem;
+        padding: 8px 14px;
+        margin: 0 10px 10px;
+      }
+      .dup-error.visible { display: block; }
 
       /* ── Table ── */
       .sheet-table-wrap { display: none; flex-direction: column; }
@@ -458,6 +586,23 @@
     </header>
 
     <main>
+      <div class="page-grid">
+      <!-- ── Sidebar ── -->
+      <aside class="sidebar">
+        <p class="sidebar-title">Order Major</p>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="" placeholder="—"><input class="sidebar-label-input" data-role="label" value="General"><input class="sidebar-input" value="100"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="C"><input class="sidebar-label-input" data-role="label" value="Civil"><input class="sidebar-input" value="110"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="L"><input class="sidebar-label-input" data-role="label" value="Landscape"><input class="sidebar-input" value="120"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="S"><input class="sidebar-label-input" data-role="label" value="Structural"><input class="sidebar-input" value="130"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="A"><input class="sidebar-label-input" data-role="label" value="Architectural"><input class="sidebar-input" value="200"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="FP"><input class="sidebar-label-input" data-role="label" value="Fire Protection"><input class="sidebar-input" value="300"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="P"><input class="sidebar-label-input" data-role="label" value="Plumbing"><input class="sidebar-input" value="400"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="M"><input class="sidebar-label-input" data-role="label" value="Mechanical"><input class="sidebar-input" value="500"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="E"><input class="sidebar-label-input" data-role="label" value="Electrical"><input class="sidebar-input" value="600"></div>
+        <div id="sidebarCustomRows"></div>
+        <div id="sidebarError" class="sidebar-error"></div>
+        <p class="sidebar-hint">Edits apply on next Get List</p>
+      </aside>
       <div class="content-wrap">
         <!-- ── PDF Tool ── -->
         <section>
@@ -490,26 +635,25 @@
             <!-- Page 1 preview -->
             <div class="preview-wrap" id="previewWrap">
               <div class="preview-header">
-                <p class="preview-label">
-                  Page <span id="pageIndicator">1</span>
-                </p>
-                <div class="region-tools">
-                  <button class="btn" id="prevPageBtn">&#9664;</button>
-                  <button class="btn" id="nextPageBtn">&#9654;</button>
-                  <button class="btn" id="zoomOutBtn">−</button>
-                  <button class="btn" id="zoomInBtn">+</button>
-                </div>
+                <p class="preview-label">Page <span id="pageIndicator">1</span></p>
               </div>
               <div class="refine-wrap" id="refineWrap">
                 <canvas id="pageCanvas"></canvas>
                 <canvas id="overlayCanvas"></canvas>
               </div>
               <div class="region-footer">
+                <div class="region-tools">
+                  <button class="btn" id="prevPageBtn">&#9664;</button>
+                  <button class="btn" id="nextPageBtn">&#9654;</button>
+                  <button class="btn" id="zoomOutBtn">−</button>
+                  <button class="btn" id="zoomInBtn">+</button>
+                </div>
                 <p class="refine-hint" id="refineHint"></p>
                 <div class="region-tools">
                   <button class="btn btn-region-num" id="numRegionBtn">Sheet Number region</button>
                   <button class="btn btn-region-title" id="titleRegionBtn">Sheet Title region</button>
                   <button class="btn" id="clearRegionsBtn">Clear</button>
+                  <button class="btn" id="debugTextBtn" title="Show where PDF.js sees text on this page">Text layer</button>
                   <button class="btn btn-primary" id="reparseBtn" disabled>Get List</button>
                 </div>
               </div>
@@ -517,13 +661,13 @@
 
             <!-- Sheet table -->
             <div class="sheet-table-wrap" id="tableWrap">
+              <div id="extractWarning" class="extract-warning"></div>
               <div class="sheet-toolbar">
                 <div class="sheet-toolbar-left">
                   <span class="parsed-count" id="parsedCount"></span>
+                  <span id="extractStatus" style="font-size:0.7rem; color:var(--muted);"></span>
                   <span id="dupWarning" style="display:none; font-size:0.75rem; font-weight:bold; color:#ffaaaa;"></span>
-                  <span class="sheet-note"
-                    >Edit any cells before downloading</span
-                  >
+                  <span class="sheet-note">Edit any cells before downloading</span>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center">
                   <button class="btn btn-add" id="addRowBtn">+ Add row</button>
@@ -542,6 +686,7 @@
                 </thead>
                 <tbody id="sheetBody"></tbody>
               </table>
+              <div class="dup-error" id="dupError"></div>
               <div class="sheet-footer">
                 <button class="btn" id="resetBtn">Reset</button>
                 <button class="btn btn-primary" id="downloadBtn">
@@ -606,7 +751,8 @@
             </a>
           </div>
         </section>
-      </div>
+      </div><!-- end content-wrap -->
+      </div><!-- end page-grid -->
     </main>
 
     <div class="corp-footer">
@@ -693,25 +839,118 @@
       // ── Constants ────────────────────────────────────────────────────────────
       const SHEET_RE_JS = /\b([A-Z]{1,3}-\d{1,4}[A-Z]?|[A-Z]{1,3}\d{3,4}[A-Z]?)\b/;
 
-      const DISCIPLINE_MAP = {
-        S: ["STRUCTURAL", 300],
-        SD: ["STRUCTURAL", 300],
-        SS: ["STRUCTURAL", 300],
-        C: ["CIVIL", 200],
-        L: ["LANDSCAPE", 150],
-        I: ["INTERIORS", 250],
-        P: ["PLUMBING", 400],
-        MP: ["MECHANICAL PLUMBING", 450],
-        M: ["MECHANICAL", 500],
-        H: ["HVAC", 520],
-        E: ["ELECTRICAL", 600],
-        EP: ["ELECTRICAL POWER", 620],
-        FP: ["FIRE PROTECTION", 700],
-        FA: ["FIRE ALARM", 710],
-        SP: ["FIRE SUPPRESSION", 720],
-        T: ["TECHNOLOGY", 800],
-        IT: ["TECHNOLOGY", 800],
-      };
+      // Build prefix → discipline map live from sidebar inputs
+      function buildPrefixMap() {
+        const map = {};
+        document.querySelectorAll('.sidebar-row').forEach(row => {
+          const prefixEl = row.querySelector('.sidebar-prefix-input');
+          const labelEl  = row.querySelector('[data-role="label"]');
+          if (!prefixEl || !labelEl) return;
+          const prefix = prefixEl.value.trim().toUpperCase();
+          const disc   = labelEl.value.trim().toUpperCase();
+          if (prefix && disc) map[prefix] = disc;
+        });
+        return map;
+      }
+
+      // Read current ORDER-MAJOR values from sidebar inputs
+      function getMajorForDisc(disc) {
+        const upper = disc.toUpperCase();
+        for (const row of document.querySelectorAll('.sidebar-row')) {
+          const labelEl = row.querySelector('[data-role="label"]');
+          const inp     = row.querySelector('.sidebar-input');
+          if (!labelEl || !inp) continue;
+          if (labelEl.value.trim().toUpperCase() === upper) return parseInt(inp.value) || 0;
+        }
+        return 900;
+      }
+
+      // Sidebar conflict validation
+      const sidebarError = document.getElementById('sidebarError');
+      function validateSidebar() {
+        const rows = document.querySelectorAll('.sidebar-row');
+        const names = [], nums = [];
+        rows.forEach(r => r.classList.remove('has-error'));
+        sidebarError.textContent = '';
+
+        rows.forEach(row => {
+          const labelEl = row.querySelector('[data-role="label"]');
+          const inp = row.querySelector('.sidebar-input');
+          if (!inp) return;
+
+          const name = labelEl ? labelEl.value.trim().toUpperCase() : '';
+          const num = parseInt(inp.value) || null;
+
+          if (name) names.push({ name, row });
+          if (num !== null) nums.push({ num, row });
+        });
+
+        const errors = [];
+        // duplicate names
+        const nameCount = {};
+        names.forEach(({ name }) => nameCount[name] = (nameCount[name] || 0) + 1);
+        names.forEach(({ name, row }) => {
+          if (nameCount[name] > 1) { row.classList.add('has-error'); errors.push(`Duplicate name "${name}"`); }
+        });
+        // duplicate numbers
+        const numCount = {};
+        nums.forEach(({ num }) => numCount[num] = (numCount[num] || 0) + 1);
+        nums.forEach(({ num, row }) => {
+          if (numCount[num] > 1) { row.classList.add('has-error'); errors.push(`Duplicate number ${num}`); }
+        });
+
+        const unique = [...new Set(errors)];
+        sidebarError.textContent = unique.join(' · ');
+        return unique.length === 0;
+      }
+
+      function sortSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const anchor  = document.getElementById('sidebarCustomRows');
+        const val = r => parseInt(r.querySelector('.sidebar-input').value) || 0;
+
+        // Gather all rows regardless of where they currently live
+        const fixedRows    = Array.from(sidebar.querySelectorAll(':scope > .sidebar-row'));
+        const allCustom    = Array.from(anchor.querySelectorAll('.sidebar-row-custom'));
+        const filledCustom = allCustom.filter(r => r.querySelector('.sidebar-input').value.trim());
+        const blankCustom  = allCustom.filter(r => !r.querySelector('.sidebar-input').value.trim());
+
+        // Sort everything filled together
+        const allFilled = [...fixedRows, ...filledCustom];
+        allFilled.sort((a, b) => val(a) - val(b));
+
+        // Clear anchor, then re-insert: sorted filled rows as direct sidebar children,
+        // blank custom rows back in anchor at the bottom
+        anchor.innerHTML = '';
+        allFilled.forEach(r => sidebar.insertBefore(r, anchor));
+        blankCustom.forEach(r => anchor.appendChild(r));
+      }
+
+      const customRowsContainer = document.getElementById('sidebarCustomRows');
+
+      function addCustomRow() {
+        const row = document.createElement('div');
+        row.className = 'sidebar-row sidebar-row-custom';
+        row.innerHTML = '<input class="sidebar-prefix-input" placeholder="XX" data-role="prefix"><input class="sidebar-label-input" placeholder="Discipline" data-role="label"><input class="sidebar-input" placeholder="—" data-role="value">';
+        customRowsContainer.appendChild(row);
+      }
+
+      // Seed with one blank custom row
+      addCustomRow();
+
+      // When any input in the last custom row is touched, append a new blank row
+      customRowsContainer.addEventListener('input', () => {
+        const allCustom = customRowsContainer.querySelectorAll('.sidebar-row-custom');
+        const last = allCustom[allCustom.length - 1];
+        const vals = [...last.querySelectorAll('input')].map(i => i.value.trim());
+        if (vals.some(v => v)) addCustomRow();
+        validateSidebar();
+      });
+
+      document.querySelector('.sidebar').addEventListener('input', validateSidebar);
+      document.querySelector('.sidebar').addEventListener('focusout', (e) => {
+        if (e.target.classList.contains('sidebar-input')) sortSidebar();
+      });
 
       // ── State ────────────────────────────────────────────────────────────────
       let pdfDoc = null;
@@ -723,15 +962,19 @@
       let currentPage  = 1;
 
       function resolveParams(num) {
-        const prefix = num.includes("-")
+        const raw = num.includes("-")
           ? num.split("-")[0]
           : (num.match(/^[A-Z]+/) || [""])[0];
-        const key = Object.keys(DISCIPLINE_MAP)
-          .sort((a, b) => b.length - a.length)
-          .find((k) => prefix === k);
-        const [discipline, major] = key
-          ? DISCIPLINE_MAP[key]
-          : ["CONSULTANT", 900];
+        const prefixMap = buildPrefixMap();
+        // Try longest match first, then progressively shorter substrings
+        const keys = Object.keys(prefixMap).sort((a, b) => b.length - a.length);
+        let discipline = "GENERAL";
+        for (let len = raw.length; len >= 1; len--) {
+          const candidate = raw.slice(0, len);
+          const key = keys.find(k => k === candidate);
+          if (key) { discipline = prefixMap[key]; break; }
+        }
+        const major = getMajorForDisc(discipline);
         const n = parseInt((num.match(/\d+/) || [0])[0]);
         const minor = major + (n < 100 ? 10 : n < 500 ? 20 : 30);
         return { discipline, major, minor };
@@ -817,12 +1060,53 @@
       }, { passive: false });
 
       // ── Client-side extraction via PDF.js ───────────────────────────────────
+      // ── OCR fallback (Tesseract.js) ───────────────────────────────────────────
+      let _ocrWorker = null;
+      async function getOcrWorker() {
+        if (!_ocrWorker) {
+          const Tesseract = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
+          const createWorker = Tesseract.createWorker ?? Tesseract.default?.createWorker;
+          if (typeof createWorker !== 'function') throw new Error('Tesseract.js failed to load — try on the deployed site, not locally.');
+          _ocrWorker = await createWorker('eng');
+        }
+        return _ocrWorker;
+      }
+
+      async function getOcrItems(page) {
+        // Render at 2× for OCR accuracy
+        const ocrVP  = page.getViewport({ scale: 2 });
+        const canvas = document.createElement('canvas');
+        canvas.width  = ocrVP.width;
+        canvas.height = ocrVP.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport: ocrVP }).promise;
+        const worker     = await getOcrWorker();
+        const { data }   = await worker.recognize(canvas);
+        return data.words
+          .filter(w => w.text.trim())
+          .map(w => ({
+            str: w.text.trim(),
+            // centre-x, baseline-y, normalised to 0–1
+            x: (w.bbox.x0 + w.bbox.x1) / 2 / canvas.width,
+            y: w.bbox.y1 / canvas.height,
+          }));
+      }
+
+      function itemsInRegion(items, region) {
+        return items.filter(it =>
+          it.x >= region.x0 && it.x <= region.x1 &&
+          it.y >= region.y0 && it.y <= region.y1
+        ).sort((a, b) => a.y - b.y || a.x - b.x);
+      }
+
       async function extractClientSide(doc) {
         const sheets = [];
         const numCounts = {};
         for (let p = 1; p <= doc.numPages; p++) {
           const page    = await doc.getPage(p);
-          const vp      = page.getViewport({ scale: 1 });
+          // Use the same viewport scale as the canvas so region fractions align
+          const scale1vp = page.getViewport({ scale: 1 });
+          const displayVP = pageVP || scale1vp;
+          const vp = page.getViewport({ scale: displayVP.scale });
           const pw = vp.width, ph = vp.height;
           const content = await page.getTextContent();
           const items = content.items
@@ -834,11 +1118,23 @@
               return { str: it.str.trim(), x: cx / pw, y: cy / ph };
             });
           let num = null, title = '';
+          let ocrItems = null; // lazily fetched per page if needed
+
+          async function getItems(region) {
+            let inReg = itemsInRegion(items, region);
+            if (!inReg.length) {
+              // PDF.js found nothing — try OCR
+              if (!ocrItems) {
+                setStatus('OCR fallback running for page ' + p + '…', 'active');
+                ocrItems = await getOcrItems(page);
+              }
+              inReg = itemsInRegion(ocrItems, region);
+            }
+            return inReg;
+          }
+
           if (numRegion) {
-            const inReg = items
-              .filter(it => it.x >= numRegion.x0 && it.x <= numRegion.x1 &&
-                            it.y >= numRegion.y0 && it.y <= numRegion.y1)
-              .sort((a, b) => a.y - b.y || a.x - b.x);
+            const inReg = await getItems(numRegion);
             num = inReg.map(it => it.str).join(' ').trim().split(/\s+/)[0] || null;
           } else {
             const regions = [[0.45,0.5,1,1],[0,0.5,0.55,1],[0,0,1,1]];
@@ -852,10 +1148,7 @@
           }
           if (!num) continue;
           if (titleRegion) {
-            const inReg = items
-              .filter(it => it.x >= titleRegion.x0 && it.x <= titleRegion.x1 &&
-                            it.y >= titleRegion.y0 && it.y <= titleRegion.y1)
-              .sort((a, b) => a.y - b.y || a.x - b.x);
+            const inReg = await getItems(titleRegion);
             title = inReg.map(it => it.str).join(' ').trim();
           } else {
             const NOISE = /PROJECT\s*#|PHONE|FAX|WWW\.|\.COM|SCALE|COPYRIGHT|^\d+$|\d{3}[-.\s]\d{3}/i;
@@ -893,6 +1186,29 @@
         setActiveMode(activeMode === "title" ? null : "title"),
       );
 
+      let debugTextActive = false;
+      document.getElementById('debugTextBtn').addEventListener('click', async () => {
+        debugTextActive = !debugTextActive;
+        document.getElementById('debugTextBtn').classList.toggle('active', debugTextActive);
+        if (!debugTextActive) { drawRegions(); return; }
+        // Extract text for the current preview page and draw dots at each item's position
+        const page = await pdfDoc.getPage(currentPage);
+        const vp = page.getViewport({ scale: pageVP ? pageVP.scale : 1 });
+        const pw = vp.width, ph = vp.height;
+        const content = await page.getTextContent();
+        const ctx = overlayCanvas.getContext('2d');
+        drawRegions(); // keep existing region boxes
+        content.items.filter(it => it.str && it.str.trim()).forEach(it => {
+          const [cx, cy] = pdfjsLib.Util.applyTransform([it.transform[4], it.transform[5]], vp.transform);
+          const x = cx / pw * overlayCanvas.width;
+          const y = cy / ph * overlayCanvas.height;
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 200, 0, 0.7)';
+          ctx.fill();
+        });
+      });
+
       clearRegionsBtn.addEventListener("click", () => {
         numRegion = null;
         titleRegion = null;
@@ -912,18 +1228,18 @@
         if (!sheets.length) { setStatus('No sheets found.', 'error'); return; }
         const total = pdfDoc.numPages;
         let statusMsg, statusType;
+        const extractWarning = document.getElementById('extractWarning');
+        const extractStatus  = document.getElementById('extractStatus');
         if (sheets.length !== total) {
-          statusMsg = sheets.length + ' sheets extracted — WARNING: expected ' + total + ' (one per page). Check regions.';
-          statusType = 'error';
+          extractWarning.textContent = '⚠ ' + sheets.length + ' sheets extracted — expected ' + total + ' (one per page). Check your regions.';
+          extractWarning.classList.add('visible');
+          if (extractStatus) extractStatus.textContent = '';
         } else {
-          statusMsg = sheets.length + ' sheets extracted — all ' + total + ' pages matched.';
-          statusType = 'success';
+          extractWarning.textContent = '';
+          extractWarning.classList.remove('visible');
+          if (extractStatus) extractStatus.textContent = 'all ' + total + ' pages matched.';
         }
-        if (duplicates.length) {
-          statusMsg += ' DUPLICATE numbers detected: ' + duplicates.join(', ') + '.';
-          statusType = 'error';
-        }
-        setStatus(statusMsg, statusType);
+        setStatus('');
         renderTable(sheets);
       });
 
@@ -954,7 +1270,7 @@
         if (missing.length) {
           refineHint.textContent = 'Still needed: ' + missing.join(', ') + '.';
         } else {
-          refineHint.textContent = 'Both regions pinned — click Re-parse to extract.';
+          refineHint.textContent = 'Both regions pinned — click Get List to extract.';
         }
       }
 
@@ -1096,7 +1412,7 @@
         tr.innerHTML = `
         <td><input class="cell-input" value="${esc(num)}" placeholder="E-101"></td>
         <td><input class="cell-input" value="${esc(title)}" placeholder="Sheet title"></td>
-        <td><input class="cell-input" value="${esc(p.discipline)}" readonly></td>
+        <td><input class="cell-input" value="${esc(p.discipline)}"></td>
         <td><input class="cell-input" value="${p.major}"></td>
         <td><input class="cell-input" value="${p.minor}"></td>
         <td class="row-del" title="Remove row">×</td>`;
@@ -1123,6 +1439,7 @@
       }
 
       const dupWarning = document.getElementById('dupWarning');
+      const dupError   = document.getElementById('dupError');
       function checkDuplicates() {
         const rows = Array.from(sheetBody.rows);
         const counts = {};
@@ -1137,11 +1454,17 @@
           tr.classList.toggle('row-dup', dupSet.has(val));
         });
         if (dupNums.length) {
-          dupWarning.textContent = 'Duplicate numbers: ' + dupNums.join(', ');
+          dupWarning.textContent = 'Duplicate sheet numbers: ' + dupNums.join(', ');
           dupWarning.style.display = '';
+          dupError.textContent = 'Cannot export — duplicate sheet numbers detected: ' + dupNums.join(', ') + '. Each sheet number must be unique or the Revit import will fail.';
+          dupError.classList.add('visible');
+          downloadBtn.disabled = true;
         } else {
           dupWarning.textContent = '';
           dupWarning.style.display = 'none';
+          dupError.textContent = '';
+          dupError.classList.remove('visible');
+          downloadBtn.disabled = false;
         }
       }
 
@@ -1197,6 +1520,10 @@
           .clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
         setStatus("");
         fileInput.value = "";
+        const ew = document.getElementById('extractWarning');
+        if (ew) { ew.textContent = ''; ew.classList.remove('visible'); }
+        const es = document.getElementById('extractStatus');
+        if (es) es.textContent = '';
       });
 
       function showToast(msg) {
