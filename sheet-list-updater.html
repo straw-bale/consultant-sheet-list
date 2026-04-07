@@ -590,12 +590,12 @@
       <!-- ── Sidebar ── -->
       <aside class="sidebar">
         <p class="sidebar-title">Order Major</p>
-        <div class="sidebar-row"><input class="sidebar-prefix-input" value="" placeholder="—"><input class="sidebar-label-input" data-role="label" value="General"><input class="sidebar-input" value="100"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="G" placeholder="—"><input class="sidebar-label-input" data-role="label" value="General"><input class="sidebar-input" value="100"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="C"><input class="sidebar-label-input" data-role="label" value="Civil"><input class="sidebar-input" value="110"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="L"><input class="sidebar-label-input" data-role="label" value="Landscape"><input class="sidebar-input" value="120"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="S"><input class="sidebar-label-input" data-role="label" value="Structural"><input class="sidebar-input" value="130"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="A"><input class="sidebar-label-input" data-role="label" value="Architectural"><input class="sidebar-input" value="200"></div>
-        <div class="sidebar-row"><input class="sidebar-prefix-input" value="FP"><input class="sidebar-label-input" data-role="label" value="Fire Protection"><input class="sidebar-input" value="300"></div>
+        <div class="sidebar-row"><input class="sidebar-prefix-input" value="F"><input class="sidebar-label-input" data-role="label" value="Fire Protection"><input class="sidebar-input" value="300"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="P"><input class="sidebar-label-input" data-role="label" value="Plumbing"><input class="sidebar-input" value="400"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="M"><input class="sidebar-label-input" data-role="label" value="Mechanical"><input class="sidebar-input" value="500"></div>
         <div class="sidebar-row"><input class="sidebar-prefix-input" value="E"><input class="sidebar-label-input" data-role="label" value="Electrical"><input class="sidebar-input" value="600"></div>
@@ -707,9 +707,14 @@
             to draw exact boxes over the title block cells. Applied to every page.
             Without pins, the tool auto-scans the bottom-right corner first, then
             bottom-left, then the full page.<br /><br />
-            <strong>Discipline + sort order</strong> are derived from the sheet number prefix:
-            S/SD/SS → Structural · C → Civil · P → Plumbing · M → Mechanical ·
-            E → Electrical · FP → Fire Protection · T → Technology<br /><br />
+            <strong>Discipline + Order Major</strong> are derived from the sheet number prefix.
+            The <em>Order Major</em> sidebar lists all prefix → discipline mappings and their sort values.
+            Defaults: G → General (100) · C → Civil (110) · L → Landscape (120) · S → Structural (130) ·
+            A → Architectural (200) · F → Fire Protection (300) · P → Plumbing (400) · M → Mechanical (500) · E → Electrical (600).
+            Prefixes support numeric leaders — e.g. <code>3-E</code> matches <code>3-E-001</code>.
+            Add or edit rows in the sidebar; changes take effect on the next Get List.<br /><br />
+            <strong>Order Minor</strong> is assigned per discipline in PDF page order, so sorting by
+            Order Major then Order Minor in Revit reproduces the exact sequence drawings appear in the PDF.<br /><br />
             <strong>CSV columns:</strong> NUMBER · SHEET NAME · DISCIPLINE · ORDER-MAJOR · ORDER-MINOR
           </div>
         </section>
@@ -961,10 +966,20 @@
       let zoomScale    = null; // current preview scale, set on first render
       let currentPage  = 1;
 
-      function resolveParams(num) {
-        const raw = num.includes("-")
-          ? num.split("-")[0]
-          : (num.match(/^[A-Z]+/) || [""])[0];
+      function resolveParams(num, pdfIndex = null) {
+        let raw;
+        if (num.includes("-")) {
+          const parts = num.split("-");
+          if (/^\d+$/.test(parts[0]) && parts.length > 1) {
+            // Format like "3-E-001" or "3-ED101": numeric leader + letter prefix
+            const letterPart = (parts[1].match(/^[A-Z]*/) || [""])[0];
+            raw = parts[0] + "-" + letterPart;
+          } else {
+            raw = parts[0];
+          }
+        } else {
+          raw = (num.match(/^[A-Z]+/) || [""])[0];
+        }
         const prefixMap = buildPrefixMap();
         // Try longest match first, then progressively shorter substrings
         const keys = Object.keys(prefixMap).sort((a, b) => b.length - a.length);
@@ -975,8 +990,10 @@
           if (key) { discipline = prefixMap[key]; break; }
         }
         const major = getMajorForDisc(discipline);
+        // Use PDF page index (1-based) as ORDER-MINOR to preserve PDF drawing order.
+        // Falls back to a number-derived value when not called from PDF extraction.
         const n = parseInt((num.match(/\d+/) || [0])[0]);
-        const minor = major + (n < 100 ? 10 : n < 500 ? 20 : 30);
+        const minor = pdfIndex !== null ? pdfIndex : major + (n < 100 ? 10 : n < 500 ? 20 : 30);
         return { discipline, major, minor };
       }
 
@@ -1400,14 +1417,19 @@
       // ── Table ─────────────────────────────────────────────────────────────────
       function renderTable(sheets) {
         sheetBody.innerHTML = "";
-        sheets.forEach((s) => addRow(s.number, s.title));
+        const discCounts = {};
+        sheets.forEach((s) => {
+          const disc = resolveParams(s.number).discipline;
+          discCounts[disc] = (discCounts[disc] || 0) + 1;
+          addRow(s.number, s.title, discCounts[disc]);
+        });
         parsedCount.textContent = sheetBody.rows.length + " sheets found";
         tableWrap.classList.add("visible");
         checkDuplicates();
       }
 
-      function addRow(num, title) {
-        const p = resolveParams(num);
+      function addRow(num, title, pdfIndex = null) {
+        const p = resolveParams(num, pdfIndex);
         const tr = document.createElement("tr");
         tr.innerHTML = `
         <td><input class="cell-input" value="${esc(num)}" placeholder="E-101"></td>
@@ -1484,9 +1506,11 @@
       document.getElementById('sortMajorBtn').addEventListener('click', () => {
         const rows = Array.from(sheetBody.rows);
         rows.sort((a, b) => {
-          const av = parseInt(a.querySelectorAll('input')[3].value) || 0;
-          const bv = parseInt(b.querySelectorAll('input')[3].value) || 0;
-          return (av - bv) * sortMajorDir;
+          const ai = a.querySelectorAll('input');
+          const bi = b.querySelectorAll('input');
+          const majorDiff = ((parseInt(ai[3].value) || 0) - (parseInt(bi[3].value) || 0)) * sortMajorDir;
+          if (majorDiff !== 0) return majorDiff;
+          return ((parseInt(ai[4].value) || 0) - (parseInt(bi[4].value) || 0)) * sortMajorDir;
         });
         sortMajorDir *= -1;
         document.getElementById('sortMajorBtn').textContent =
