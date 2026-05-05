@@ -10,9 +10,10 @@ from Autodesk.Revit.DB import (
     Transaction, ElementId, BuiltInCategory
 )
 import clr
+clr.AddReference('System')
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Clipboard
-from System.Diagnostics import Process
+import os
 from pyrevit import forms, script
 import csv, io
 
@@ -39,7 +40,7 @@ if choice == 'Generate from PDF':
     )
     if not ready:
         script.exit()
-    Process.Start(SHEET_LIST_URL)
+    os.startfile(SHEET_LIST_URL)
     confirmed = forms.alert(
         'The sheet list tool is now open in your browser.\n\n'
         '1. Drop your PDF\n'
